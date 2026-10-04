@@ -8,34 +8,48 @@ import StatCard from '@/components/app/dashboard/StatCard.vue'
 import WelcomeHeader from '@/components/app/dashboard/WelcomeHeader.vue'
 import { useDashboardStore } from '@/stores/dashboard'
 
-// La sesión se verifica aparte (GET /me en stores/auth.js), así que la vista
-// pide GET /dashboard al montarse.
 const dashboard = useDashboardStore()
 
 onMounted(() => {
   dashboard.fetchDashboard()
 })
 
-const medalsValue = computed(() => (dashboard.loaded ? dashboard.medals : '—'))
-const progressValue = computed(() =>
-  dashboard.loaded && dashboard.progress !== null ? `${dashboard.progress}%` : '—',
-)
+function statValue(value, suffix = '') {
+  return dashboard.loaded && value !== null ? `${value}${suffix}` : '—'
+}
+
+const coursesValue = computed(() => statValue(dashboard.courses))
+const progressValue = computed(() => statValue(dashboard.progress, '%'))
+const medalsValue = computed(() => statValue(dashboard.medals))
+
+const errorDetails = computed(() => {
+  const err = dashboard.error
+  if (!err) return null
+  return {
+    title: err.status ? `Error ${err.status}` : 'Error de red',
+    message: err.message,
+  }
+})
 </script>
 
 <template>
   <section>
     <WelcomeHeader />
 
+    <div
+      v-if="errorDetails"
+      class="mt-6 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 font-body text-sm text-white/85"
+      role="alert"
+    >
+      <p class="font-display font-bold text-red-300">{{ errorDetails.title }} · No pudimos cargar tu resumen</p>
+      <p class="mt-1 break-words">{{ errorDetails.message }}</p>
+    </div>
+
     <div class="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[1.6fr_1fr]">
-      <ContinueCourseCard :course="dashboard.latestCourse" />
+      <ContinueCourseCard :course="dashboard.latestCourse" :recent-course-progress="dashboard.recent_course_progress" />
 
       <div class="flex flex-col gap-4">
-        <!-- "Cursos inscritos": /dashboard no expone un conteo de inscripciones
-             (EnrollmentService::count() existe en el backend pero
-             DashboardController no lo llama todavía). Placeholder explícito
-             a propósito, no se simula con recent_courses.length (viene topado
-             a 5 y filtrado por actividad reciente). -->
-        <StatCard value="—" label="Cursos inscritos" icon-bg-class="bg-tag-poo-bg">
+        <StatCard :value="coursesValue" label="Cursos en progreso" icon-bg-class="bg-tag-poo-bg">
           <template #icon>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--color-tag-poo-fg)" stroke-width="1.9">
               <path d="M5 4.5h12.5A1.5 1.5 0 0 1 19 6v14H6.5A1.5 1.5 0 0 1 5 18.5z" />
@@ -65,7 +79,7 @@ const progressValue = computed(() =>
     </div>
 
     <div class="mt-9">
-      <EnrolledCoursesList :courses="dashboard.recentCourses" />
+      <EnrolledCoursesList :courses="dashboard.recent_courses" />
     </div>
   </section>
 </template>

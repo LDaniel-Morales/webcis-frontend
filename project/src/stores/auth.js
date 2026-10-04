@@ -6,6 +6,7 @@ import {
   login as requestLogin,
   logout as requestLogout,
 } from '@/services/auth.service'
+import { useCoursesStore } from '@/stores/courses'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useProfileStore } from '@/stores/profile'
 
@@ -41,24 +42,19 @@ export function normalizeServerUser(serverUser) {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
-  // PENDIENTE DE REVISAR: respaldo de cuando no existía un endpoint de
-  // usuario (/dashboard sin desplegar). Permitía marcar la sesión como
-  // autenticada tras un login exitoso aunque no se pudiera obtener el
-  // usuario. Con GET /me ya no se usa: si /me falla tras el login, el login
-  // falla (ver login()). Se deja comentado hasta confirmar que no hace falta.
-  // const sessionConfirmed = ref(false)
   // Marca si ya se intentó verificar la sesión contra /me en esta carga de
   // la app (éxito o fallo). El guard del router la usa para no repetir la
   // llamada al backend en cada navegación entre rutas protegidas.
   const sessionChecked = ref(false)
 
   const isAuthenticated = computed(() => Boolean(user.value))
-  // const isAuthenticated = computed(() => Boolean(user.value) || sessionConfirmed.value)
   const type = computed(() => user.value?.type ?? null)
 
   function clearSession() {
     user.value = null
-    // sessionConfirmed.value = false
+    useDashboardStore().clear()
+    useProfileStore().clear()
+    useCoursesStore().clear()
   }
 
   function setUser(serverUser) {
@@ -88,9 +84,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(credentials) {
     const response = await requestLogin(credentials)
     if (!(await refreshSession())) {
-      // Respaldo anterior (ver sessionConfirmed arriba):
-      // sessionConfirmed.value = true
-      // return response
       throw {
         status: 0,
         message: 'No se pudo verificar la sesión. Intenta de nuevo.',
@@ -109,8 +102,6 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     } finally {
       clearSession()
-      useDashboardStore().clear()
-      useProfileStore().clear()
     }
   }
 
