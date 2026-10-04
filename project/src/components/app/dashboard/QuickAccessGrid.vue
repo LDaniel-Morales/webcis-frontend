@@ -18,7 +18,7 @@ const items = [
   },
   {
     label: 'Mi perfil',
-    to: null,
+    to: '/app/profile',
     circle: { cx: 12, cy: 8.5, r: 3.5 },
     paths: ['M5 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5'],
   },

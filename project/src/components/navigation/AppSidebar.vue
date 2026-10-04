@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 
 import ProgressBar from '@/components/ui/ProgressBar.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useDashboardStore } from '@/stores/dashboard'
 
 // `collapsed` deja el layout listo para un futuro modo "rail compacto";
 // hoy no se renderiza ningún control para activarlo (sidebar fija únicamente).
@@ -16,6 +17,9 @@ defineProps({
 
 const route = useRoute()
 const auth = useAuthStore()
+const dashboard = useDashboardStore()
+
+const hasProgress = computed(() => dashboard.loaded && dashboard.progress !== null)
 
 const canAdmin = computed(() => auth.type === 'Admin')
 
@@ -101,9 +105,15 @@ function iconStroke(path) {
       </RouterLink>
 
       <div v-if="!collapsed" class="mx-4 mt-3 rounded-2xl border border-acento/25 bg-acento/10 p-4">
-        <p class="mb-2 font-display text-xs font-semibold text-white">Progreso del cuatrimestre</p>
-        <ProgressBar :percent="0" track-class="bg-white/10" fill-class="bg-(image:--gradient-gold)" />
-        <p class="mt-2 font-body text-[11px] text-white/60">Sin datos aún</p>
+        <p class="mb-2 font-display text-xs font-semibold text-white">Progreso promedio</p>
+        <ProgressBar
+          :percent="hasProgress ? dashboard.progress : 0"
+          track-class="bg-white/10"
+          fill-class="bg-(image:--gradient-gold)"
+        />
+        <p class="mt-2 font-body text-[11px] text-white/60">
+          {{ hasProgress ? `${dashboard.progress}% de tus cursos activos` : 'Sin datos aún' }}
+        </p>
       </div>
     </div>
   </aside>
