@@ -14,11 +14,15 @@ const route = useRoute()
 const course = ref(null)
 const loading = ref(false)
 const error = ref(null)
+// Si la portada no carga (p. ej. 403 del storage del backend, BUG-03), se
+// oculta y la tarjeta queda como un curso sin imagen.
+const imageFailed = ref(false)
 
 async function load(code) {
   loading.value = true
   error.value = null
   course.value = null
+  imageFailed.value = false
   try {
     const response = await getCourse(code)
     course.value = response?.data ?? null
@@ -50,7 +54,13 @@ watch(() => route.params.code, (code) => code && load(code), { immediate: true }
 
     <template v-else-if="course">
       <div class="mt-5 overflow-hidden rounded-(--radius-card) bg-white shadow-(--shadow-card)">
-        <img v-if="course.image" :src="course.image" alt="" class="h-48 w-full object-cover sm:h-64">
+        <img
+          v-if="course.image && !imageFailed"
+          :src="course.image"
+          alt=""
+          class="h-48 w-full object-cover sm:h-64"
+          @error="imageFailed = true"
+        >
         <div class="p-6 sm:p-8">
           <p class="font-display text-xs font-bold uppercase tracking-wider text-cobre-digital">{{ course.code }}</p>
           <h1 class="mt-1 font-display text-3xl font-bold text-texto">{{ course.title }}</h1>

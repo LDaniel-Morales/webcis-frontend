@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { ref, watch } from 'vue'
+
+const props = defineProps({
   // CourseSummaryResource: { code, title, short_title, description,
   // categories: [{ code, name }], subjects: [{ code, name }], status, icon }.
   course: {
@@ -18,16 +20,22 @@ defineProps({
 })
 
 defineEmits(['toggle-category', 'toggle-subject'])
+
+// Si el ícono no carga (p. ej. 403 del storage del backend, BUG-03), se
+// muestra el marcador por defecto. Se reintenta si cambia la URL.
+const iconFailed = ref(false)
+watch(() => props.course.icon, () => { iconFailed.value = false })
 </script>
 
 <template>
   <article class="flex flex-col rounded-(--radius-card) bg-white p-5 shadow-(--shadow-card)">
     <RouterLink :to="`/app/courses/${course.code}`" class="flex items-start gap-4">
       <img
-        v-if="course.icon"
+        v-if="course.icon && !iconFailed"
         :src="course.icon"
         alt=""
         class="size-16 flex-none rounded-2xl bg-gris-interfaz object-contain p-1.5"
+        @error="iconFailed = true"
       >
       <div v-else class="flex size-16 flex-none items-center justify-center rounded-2xl bg-gris-interfaz">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-acento)" stroke-width="1.5">
