@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 
 import { getMe, login, logout } from '@/services/auth.service'
 import { normalizeServerUser, useAuthStore } from '@/stores/auth'
+import { useCoursesStore } from '@/stores/courses'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useProfileStore } from '@/stores/profile'
 
@@ -105,21 +106,74 @@ describe('auth store', () => {
     expect(auth.isAuthenticated).toBe(false)
   })
 
-  it('calls the backend logout and always clears local state, including dashboard and profile', async () => {
-    vi.mocked(logout).mockRejectedValue({ status: 500 })
+  function fillEveryStore() {
     const auth = useAuthStore()
     const dashboard = useDashboardStore()
     const profile = useProfileStore()
+    const courses = useCoursesStore()
     auth.setUser(USER_RESOURCE)
-    dashboard.setDashboardData({ medals: 2, progress: 20, recent_courses: [] })
+    dashboard.setDashboardData({ medals: 2, courses: 1, progress: 20, recent_courses: [{ code: 'LARAVEL-101' }] })
     profile.medals = [{ name: 'POO' }]
     profile.loaded = true
+    courses.filters = { ...courses.filters, search: 'laravel', categories: ['web'], page: 3 }
+    courses.data = [{ code: 'LARAVEL-101' }]
+    courses.meta = { total: 1 }
+    return { auth, dashboard, profile, courses }
+  }
 
-    await expect(auth.logout()).resolves.toBe(false)
+  function snapshot({ auth, dashboard, profile, courses }) {
+    return {
+      user: auth.user,
+      isAuthenticated: auth.isAuthenticated,
+      dashboardLoaded: dashboard.loaded,
+      recentCourses: dashboard.recent_courses,
+      profileLoaded: profile.loaded,
+      medals: profile.medals,
+      search: courses.filters.search,
+      categories: courses.filters.categories,
+      page: courses.filters.page,
+      coursesData: courses.data,
+      coursesMeta: courses.meta,
+    }
+  }
+
+  const CLEARED = {
+    user: null,
+    isAuthenticated: false,
+    dashboardLoaded: false,
+    recentCourses: [],
+    profileLoaded: false,
+    medals: [],
+    search: '',
+    categories: [],
+    page: 1,
+    coursesData: [],
+    coursesMeta: null,
+  }
+
+  it('clearSession resets auth, dashboard, profile and courses (used on expired sessions)', () => {
+    const stores = fillEveryStore()
+
+    stores.auth.clearSession()
+
+    expect(snapshot(stores)).toEqual(CLEARED)
+  })
+
+  it('logout calls the backend and always clears every store, even when the request fails', async () => {
+    vi.mocked(logout).mockRejectedValue({ status: 419, message: 'CSRF token mismatch.' })
+    const stores = fillEveryStore()
+
+    await expect(stores.auth.logout()).resolves.toBe(false)
+
     expect(logout).toHaveBeenCalledOnce()
-    expect(auth.user).toBeNull()
-    expect(dashboard.loaded).toBe(false)
-    expect(profile.loaded).toBe(false)
-    expect(profile.medals).toEqual([])
+    expect(snapshot(stores)).toEqual(CLEARED)
+  })
+
+  it('logout returns true when the backend confirms it', async () => {
+    vi.mocked(logout).mockResolvedValue({ message: 'User logged out successfully' })
+    const stores = fillEveryStore()
+
+    await expect(stores.auth.logout()).resolves.toBe(true)
+    expect(snapshot(stores)).toEqual(CLEARED)
   })
 })
