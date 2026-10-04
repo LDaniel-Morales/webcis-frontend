@@ -7,6 +7,7 @@ import {
   logout as requestLogout,
 } from '@/services/auth.service'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useProfileStore } from '@/stores/profile'
 
 // Campos de UserResource (backend WebCIS). El usuario se guarda con estos
 // mismos nombres: el front se adapta al contrato del back, sin renombrar.
@@ -109,6 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       clearSession()
       useDashboardStore().clear()
+      useProfileStore().clear()
     }
   }
 

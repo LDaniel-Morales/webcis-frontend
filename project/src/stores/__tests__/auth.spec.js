@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { getMe, login, logout } from '@/services/auth.service'
 import { normalizeServerUser, useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useProfileStore } from '@/stores/profile'
 
 vi.mock('@/services/auth.service', () => ({
   getMe: vi.fn(),
@@ -104,16 +105,21 @@ describe('auth store', () => {
     expect(auth.isAuthenticated).toBe(false)
   })
 
-  it('calls the backend logout and always clears local state, including the dashboard store', async () => {
+  it('calls the backend logout and always clears local state, including dashboard and profile', async () => {
     vi.mocked(logout).mockRejectedValue({ status: 500 })
     const auth = useAuthStore()
     const dashboard = useDashboardStore()
+    const profile = useProfileStore()
     auth.setUser(USER_RESOURCE)
     dashboard.setDashboardData({ medals: 2, progress: 20, recent_courses: [] })
+    profile.medals = [{ name: 'POO' }]
+    profile.loaded = true
 
     await expect(auth.logout()).resolves.toBe(false)
     expect(logout).toHaveBeenCalledOnce()
     expect(auth.user).toBeNull()
     expect(dashboard.loaded).toBe(false)
+    expect(profile.loaded).toBe(false)
+    expect(profile.medals).toEqual([])
   })
 })
