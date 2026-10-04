@@ -2,7 +2,7 @@
 defineProps({
   description: {
     type: String,
-    required: true,
+    default: null,
   },
   email: {
     type: String,
@@ -10,7 +10,7 @@ defineProps({
   },
   controlNumber: {
     type: String,
-    required: true,
+    default: null,
   },
   roleLabel: {
     type: String,
@@ -22,7 +22,8 @@ defineProps({
 <template>
   <div class="rounded-(--radius-card) bg-white p-[18px] shadow-(--shadow-card) sm:p-6">
     <p class="font-display text-[17px] font-bold text-negro-sintaxis">Acerca de</p>
-    <p class="mt-3.5 font-display text-[15px] leading-relaxed text-[#444]">{{ description }}</p>
+    <p v-if="description" class="mt-3.5 font-display text-[15px] leading-relaxed text-[#444]">{{ description }}</p>
+    <p v-else class="mt-3.5 font-display text-[15px] text-[#999]">Aún no has agregado una descripción.</p>
 
     <div class="mt-4 flex flex-col gap-2.5">
       <div class="flex items-center gap-2.5 font-display text-sm text-[#555]">
@@ -32,7 +33,7 @@ defineProps({
         {{ email ?? '—' }}
       </div>
 
-      <div class="flex items-center gap-2.5 font-display text-sm text-[#555]">
+      <div v-if="controlNumber" class="flex items-center gap-2.5 font-display text-sm text-[#555]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa3b0" stroke-width="1.9" class="flex-none">
           <rect x="3" y="4" width="18" height="16" rx="2.5" />
           <path d="M3 9h18" />

@@ -47,7 +47,10 @@ function kindIcon(kind) {
   <div class="rounded-(--radius-card) bg-white p-[18px] shadow-(--shadow-card) sm:p-6">
     <p class="font-display text-[17px] font-bold text-negro-sintaxis">Actividad reciente</p>
 
-    <div class="flex flex-col">
+    <p v-if="!activities.length" class="mt-3.5 font-display text-sm text-[#999]">
+      Aún no hay actividad. Inscríbete a un curso para empezar.
+    </p>
+    <div v-else class="flex flex-col">
       <div
         v-for="(activity, index) in activities"
         :key="index"

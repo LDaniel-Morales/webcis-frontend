@@ -5,20 +5,37 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import { profileEditSchema } from '@/schemas/validationSchema.js'
 
 defineProps({
+  // Valores iniciales con los nombres de PATCH /me: username, description,
+  // name, surname, second_surname.
   initialValues: {
     type: Object,
     required: true,
+  },
+  // Solo lectura: PATCH /me no permite cambiarlos.
+  email: {
+    type: String,
+    default: null,
+  },
+  controlNumber: {
+    type: String,
+    default: null,
   },
   roleLabel: {
     type: String,
     default: '',
   },
+  saving: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['submit', 'cancel'])
 
-function onSubmit(values) {
-  emit('submit', values)
+// Se reenvían las acciones de vee-validate para que la vista pueda pintar
+// los errores 422 del backend en cada campo (setErrors).
+function onSubmit(values, actions) {
+  emit('submit', values, actions)
 }
 
 const inputClass =
@@ -32,13 +49,8 @@ const inputClass =
 
       <div class="mt-4 flex flex-col gap-4">
         <div>
-          <label for="email" class="mb-1.5 block font-display text-[13.5px] font-semibold text-negro-sintaxis">
-            Correo electrónico
-          </label>
-          <Field id="email" name="email" type="email" autocomplete="email" :class="inputClass" />
-          <ErrorMessage v-slot="{ message }" name="email">
-            <p class="mt-1 font-display text-xs text-red-600">{{ message }}</p>
-          </ErrorMessage>
+          <p class="mb-1.5 block font-display text-[13.5px] font-semibold text-negro-sintaxis">Correo electrónico</p>
+          <div class="flex h-12 items-center rounded-[13px] bg-[#f6f7f9] px-3.5 font-display text-[14.5px] text-[#555]">{{ email ?? '—' }}</div>
         </div>
 
         <div>
@@ -84,23 +96,18 @@ const inputClass =
 
       <div class="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
         <div>
-          <label for="names" class="mb-1.5 block font-display text-[13.5px] font-semibold text-negro-sintaxis">
+          <label for="name" class="mb-1.5 block font-display text-[13.5px] font-semibold text-negro-sintaxis">
             Nombre(s)
           </label>
-          <Field id="names" name="names" type="text" autocomplete="given-name" :class="inputClass" />
-          <ErrorMessage v-slot="{ message }" name="names">
+          <Field id="name" name="name" type="text" autocomplete="given-name" :class="inputClass" />
+          <ErrorMessage v-slot="{ message }" name="name">
             <p class="mt-1 font-display text-xs text-red-600">{{ message }}</p>
           </ErrorMessage>
         </div>
 
         <div>
-          <label for="control_number" class="mb-1.5 block font-display text-[13.5px] font-semibold text-negro-sintaxis">
-            Número de control
-          </label>
-          <Field id="control_number" name="control_number" type="text" autocomplete="off" :class="inputClass" />
-          <ErrorMessage v-slot="{ message }" name="control_number">
-            <p class="mt-1 font-display text-xs text-red-600">{{ message }}</p>
-          </ErrorMessage>
+          <p class="mb-1.5 block font-display text-[13.5px] font-semibold text-negro-sintaxis">Número de control</p>
+          <div class="flex h-12 items-center rounded-[13px] bg-[#f6f7f9] px-3.5 font-display text-[14.5px] text-[#555]">{{ controlNumber ?? '—' }}</div>
         </div>
 
         <div>
@@ -143,7 +150,9 @@ const inputClass =
         >
           Cancelar
         </button>
-        <BaseButton type="submit" variant="gold">Guardar cambios</BaseButton>
+        <BaseButton type="submit" variant="gold" :disabled="saving">
+          {{ saving ? 'Guardando…' : 'Guardar cambios' }}
+        </BaseButton>
       </div>
     </div>
   </Form>

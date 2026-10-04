@@ -1,9 +1,7 @@
-// Datos simulados para Mi Perfil: ningún endpoint del backend expone hoy
-// bio, número de control, medallas individuales ni actividad reciente
-// (confirmado contra BACKEND_ENDPOINTS.md — solo existen auth y materials).
-// Se documentan aquí, separados de lo que sí viene de /dashboard
-// (stores/auth.js, stores/dashboard.js), para que sea fácil de ubicar y
-// reemplazar cuando el backend agregue el contrato correspondiente.
+// YA NO SE USA EN ProfileView: bio, número de control, medallas y actividad
+// salen de GET /profile (stores/profile.js). Solo lo importa AllMedalsModal
+// (selección de medallas destacadas), desconectado hasta que el backend
+// exponga el listado completo de medallas con id. Ver MedalsCard.vue.
 
 export const MOCK_BIO =
   'Estudiante de Ingeniería en Sistemas Computacionales. Me interesa el desarrollo web y las estructuras de datos.'

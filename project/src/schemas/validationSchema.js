@@ -62,10 +62,10 @@ export const registerFormSchema = toTypedSchema(
 
 // Editar perfil (Mi Perfil / tab Editar). Sin endpoint real en el backend
 // todavía — valida solo lo que EditProfileForm.vue guarda localmente.
+// Campos de PATCH /me (ProfileUpdateRequest en el backend). email y
+// control_number no son editables, por eso no forman parte del formulario.
 export const profileEditSchema = toTypedSchema(
   yup.object({
-    email: yup.string().required('El correo es obligatorio').email('Ingresa un correo válido'),
-
     username: yup
       .string()
       .required('El usuario es obligatorio')
@@ -73,9 +73,13 @@ export const profileEditSchema = toTypedSchema(
       .max(40, 'Máximo 40 caracteres')
       .matches(/^[a-zA-Z0-9._-]+$/, 'Solo letras, números, punto, guion y guion bajo'),
 
-    description: yup.string().max(300, 'Máximo 300 caracteres').nullable(),
+    description: yup
+      .string()
+      .nullable()
+      .transform((v) => (v === '' ? null : v))
+      .max(300, 'Máximo 300 caracteres'),
 
-    names: yup
+    name: yup
       .string()
       .required('El nombre es obligatorio')
       .min(2, 'Mínimo 2 caracteres')
@@ -92,7 +96,5 @@ export const profileEditSchema = toTypedSchema(
       .nullable()
       .transform((v) => (v === '' ? null : v))
       .max(40, 'Máximo 40 caracteres'),
-
-    control_number: yup.string().max(10, 'Máximo 10 caracteres'),
   }),
 )
