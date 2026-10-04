@@ -47,7 +47,7 @@ export async function authNavigationGuard(to) {
   }
 
   if (to.meta.guest && auth.isAuthenticated) return { path: '/app' }
-  if (to.meta.requiresAdmin && auth.role !== 'admin') return { path: '/app' }
+  if (to.meta.requiresAdmin && auth.type !== 'Admin') return { path: '/app' }
 
   return true
 }

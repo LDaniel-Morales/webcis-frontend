@@ -1,7 +1,12 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
+import { getDashboard } from '@/services/auth.service'
 import { normalizeDashboardData, useDashboardStore } from '@/stores/dashboard'
+
+vi.mock('@/services/auth.service', () => ({
+  getDashboard: vi.fn(),
+}))
 
 const REAL_PAYLOAD = {
   user: { username: 'student', type: 'Student' },
@@ -62,6 +67,29 @@ describe('normalizeDashboardData', () => {
 describe('dashboard store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  it('fetches its own data from GET /dashboard', async () => {
+    vi.mocked(getDashboard).mockResolvedValue(REAL_PAYLOAD)
+    const dashboard = useDashboardStore()
+
+    await expect(dashboard.fetchDashboard()).resolves.toBe(true)
+    expect(getDashboard).toHaveBeenCalledOnce()
+    expect(dashboard.medals).toBe(1)
+    expect(dashboard.loaded).toBe(true)
+    expect(dashboard.loading).toBe(false)
+    expect(dashboard.error).toBeNull()
+  })
+
+  it('keeps the error without throwing when GET /dashboard fails (e.g. backend 404)', async () => {
+    vi.mocked(getDashboard).mockRejectedValue({ status: 404 })
+    const dashboard = useDashboardStore()
+
+    await expect(dashboard.fetchDashboard()).resolves.toBe(false)
+    expect(dashboard.error).toEqual({ status: 404 })
+    expect(dashboard.loaded).toBe(false)
+    expect(dashboard.loading).toBe(false)
   })
 
   it('starts empty', () => {

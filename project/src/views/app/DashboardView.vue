@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 import ContinueCourseCard from '@/components/app/dashboard/ContinueCourseCard.vue'
 import EnrolledCoursesList from '@/components/app/dashboard/EnrolledCoursesList.vue'
@@ -8,10 +8,13 @@ import StatCard from '@/components/app/dashboard/StatCard.vue'
 import WelcomeHeader from '@/components/app/dashboard/WelcomeHeader.vue'
 import { useDashboardStore } from '@/stores/dashboard'
 
-// El store ya se puebla desde el guard de sesión (refreshSession() en
-// stores/auth.js llama GET /dashboard una vez por carga de la SPA), así que
-// esta vista solo lee el estado, sin disparar su propia petición.
+// La sesión se verifica aparte (GET /me en stores/auth.js), así que la vista
+// pide GET /dashboard al montarse.
 const dashboard = useDashboardStore()
+
+onMounted(() => {
+  dashboard.fetchDashboard()
+})
 
 const medalsValue = computed(() => (dashboard.loaded ? dashboard.medals : '—'))
 const progressValue = computed(() =>

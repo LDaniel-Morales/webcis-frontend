@@ -5,6 +5,7 @@ import {
   confirmVerificationEmail,
   forgotPassword,
   getDashboard,
+  getMe,
   login,
   logout,
   register,
@@ -41,10 +42,12 @@ describe('auth service', () => {
     expect(apiGet.mock.invocationCallOrder[0]).toBeLessThan(apiPost.mock.invocationCallOrder[0])
   })
 
-  it('uses the protected dashboard and logout endpoints', async () => {
+  it('uses the protected me, dashboard and logout endpoints', async () => {
+    await getMe()
     await getDashboard()
     await logout()
 
+    expect(apiGet).toHaveBeenCalledWith('/me')
     expect(apiGet).toHaveBeenCalledWith('/dashboard')
     expect(apiGet).toHaveBeenCalledWith('/sanctum/csrf-cookie', {
       baseURL: backendBaseURL,

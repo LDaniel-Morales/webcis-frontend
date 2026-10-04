@@ -17,7 +17,7 @@ defineProps({
 const route = useRoute()
 const auth = useAuthStore()
 
-const canAdmin = computed(() => auth.role === 'admin')
+const canAdmin = computed(() => auth.type === 'Admin')
 
 const navItems = computed(() => [
   {

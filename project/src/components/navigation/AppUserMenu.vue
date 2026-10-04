@@ -11,8 +11,9 @@ const auth = useAuthStore()
 const open = ref(false)
 
 const displayName = computed(() => auth.user?.name ?? 'Usuario')
+const profilePicture = computed(() => auth.user?.profile_picture ?? null)
 const initials = computed(() => initialsFromName(displayName.value))
-const roleLabel = computed(() => labelForRole(auth.role))
+const roleLabel = computed(() => labelForRole(auth.type))
 
 function goToProfile() {
   open.value = false
@@ -33,7 +34,14 @@ async function handleLogout() {
       :aria-expanded="open"
       @click="open = !open"
     >
+      <img
+        v-if="profilePicture"
+        :src="profilePicture"
+        alt=""
+        class="size-10 rounded-full border-2 border-acento object-cover"
+      >
       <span
+        v-else
         class="flex size-10 items-center justify-center rounded-full border-2 border-acento bg-primario font-display text-sm font-semibold"
       >{{ initials }}</span>
       <span class="hidden text-left leading-tight md:block">

@@ -1,12 +1,12 @@
-// Etiquetas visibles para los roles normalizados en stores/auth.js
-// (student/professor/extern/admin).
+// Etiquetas visibles para `user.type` de UserResource (nombre del case de
+// UserType en el backend).
 export const ROLE_LABELS = {
-  student: 'Alumno',
-  professor: 'Profesor',
-  extern: 'Egresado',
-  admin: 'Administrador',
+  Student: 'Alumno',
+  Professor: 'Profesor',
+  Extern: 'Egresado',
+  Admin: 'Administrador',
 }
 
-export function roleLabel(role) {
-  return ROLE_LABELS[role] ?? ''
+export function roleLabel(type) {
+  return ROLE_LABELS[type] ?? ''
 }

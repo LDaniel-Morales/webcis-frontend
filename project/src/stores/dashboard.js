@@ -1,7 +1,9 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-// GET /dashboard (ver auth.js/refreshSession) devuelve, junto con `user`:
+import { getDashboard } from '@/services/auth.service'
+
+// GET /dashboard (ver fetchDashboard) devuelve, junto con `user`:
 // { medals: number, progress: number (0-100, promedio global de todos los
 // cursos activos, no por curso), recent_courses: [{ token, title,
 // short_title, icon, last_accessed_at }] } — máx. 5, solo cursos con
@@ -44,6 +46,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const progress = ref(null)
   const recentCourses = ref([])
   const loaded = ref(false)
+  const loading = ref(false)
+  const error = ref(null)
 
   // Curso más reciente entre los inscritos con actividad; base para
   // "Continúa donde lo dejaste".
@@ -63,11 +67,29 @@ export const useDashboardStore = defineStore('dashboard', () => {
     return true
   }
 
+  // La sesión se verifica con GET /me (stores/auth.js), así que el dashboard
+  // pide sus propios datos. Ojo: por un bug del backend
+  // (EnrollmentService::courseProgress() usa firstOrFail()), un usuario sin
+  // ningún curso InProgress recibe 404 aquí; solo afecta a esta vista.
+  async function fetchDashboard() {
+    loading.value = true
+    error.value = null
+    try {
+      return setDashboardData(await getDashboard())
+    } catch (err) {
+      error.value = err
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   function clear() {
     medals.value = null
     progress.value = null
     recentCourses.value = []
     loaded.value = false
+    error.value = null
   }
 
   return {
@@ -75,8 +97,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     progress,
     recentCourses,
     loaded,
+    loading,
+    error,
     latestCourse,
     setDashboardData,
+    fetchDashboard,
     clear,
   }
 })
