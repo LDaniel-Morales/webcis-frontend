@@ -40,6 +40,11 @@ const navItems = computed(() => [
     ellipse: { cx: 12, cy: 6, rx: 7.5, ry: 3 },
     paths: ['M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6', 'M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3'],
   },
+  {
+    label: 'Crear contenido',
+    to: '/app/repository/new',
+    paths: ['M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z', 'M12 8.5v7M8.5 12h7'],
+  },
   ...(canAdmin.value
     ? [{
         label: 'Administración',
@@ -52,7 +57,9 @@ const navItems = computed(() => [
 // El detalle de curso (/app/courses/:code) cuenta como parte de "Cursos".
 function isActive(path) {
   if (path === '/app/explorer') return route.path === path || route.path.startsWith('/app/courses/')
-  if (path === '/app/repository') return route.path === path || route.path.startsWith('/app/repository/')
+  if (path === '/app/repository') {
+    return route.path === path || (route.path.startsWith('/app/repository/') && route.path !== '/app/repository/new')
+  }
   return route.path === path
 }
 

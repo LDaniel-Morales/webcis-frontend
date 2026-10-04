@@ -98,3 +98,22 @@ export const profileEditSchema = toTypedSchema(
       .max(40, 'Máximo 40 caracteres'),
   }),
 )
+
+export const materialSchema = toTypedSchema(
+  yup.object({
+    mat_title: yup.string().trim().required('El título es obligatorio').max(80, 'Máximo 80 caracteres'),
+
+    mat_publication_date: yup
+      .string()
+      .required('La fecha de publicación es obligatoria')
+      .matches(/^\d{4}-\d{2}-\d{2}$/, 'Ingresa una fecha válida'),
+
+    mat_code: yup.string().trim().required('El código es obligatorio').max(14, 'Máximo 14 caracteres'),
+
+    mat_description: yup
+      .string()
+      .nullable()
+      .transform((v) => (v === '' ? null : v))
+      .max(300, 'Máximo 300 caracteres'),
+  }),
+)
