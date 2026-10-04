@@ -178,6 +178,14 @@ export const useCoursesStore = defineStore('courses', () => {
 
   // Carga los filtros desde la query de la URL (ya validados) y pide los
   // cursos.
+  function clear() {
+    filters.value = defaultFilters()
+    data.value = []
+    meta.value = null
+    loading.value = false
+    error.value = null
+  }
+
   function applyQuery(query) {
     filters.value = filtersFromQuery(query)
     return fetchCourses()
@@ -195,5 +203,6 @@ export const useCoursesStore = defineStore('courses', () => {
     toggleFilterCode,
     resetFilters,
     applyQuery,
+    clear,
   }
 })
