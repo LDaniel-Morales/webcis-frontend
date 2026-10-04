@@ -5,6 +5,7 @@ import { getMe, login, logout } from '@/services/auth.service'
 import { normalizeServerUser, useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useMaterialsStore } from '@/stores/materials'
 import { useProfileStore } from '@/stores/profile'
 
 vi.mock('@/services/auth.service', () => ({
@@ -111,6 +112,7 @@ describe('auth store', () => {
     const dashboard = useDashboardStore()
     const profile = useProfileStore()
     const courses = useCoursesStore()
+    const materials = useMaterialsStore()
     auth.setUser(USER_RESOURCE)
     dashboard.setDashboardData({ medals: 2, courses: 1, progress: 20, recent_courses: [{ code: 'LARAVEL-101' }] })
     profile.medals = [{ name: 'POO' }]
@@ -118,10 +120,12 @@ describe('auth store', () => {
     courses.filters = { ...courses.filters, search: 'laravel', categories: ['web'], page: 3 }
     courses.data = [{ code: 'LARAVEL-101' }]
     courses.meta = { total: 1 }
-    return { auth, dashboard, profile, courses }
+    materials.materials = [{ mat_serial: 1 }]
+    materials.loaded = true
+    return { auth, dashboard, profile, courses, materials }
   }
 
-  function snapshot({ auth, dashboard, profile, courses }) {
+  function snapshot({ auth, dashboard, profile, courses, materials }) {
     return {
       user: auth.user,
       isAuthenticated: auth.isAuthenticated,
@@ -134,6 +138,8 @@ describe('auth store', () => {
       page: courses.filters.page,
       coursesData: courses.data,
       coursesMeta: courses.meta,
+      materials: materials.materials,
+      materialsLoaded: materials.loaded,
     }
   }
 
@@ -149,9 +155,11 @@ describe('auth store', () => {
     page: 1,
     coursesData: [],
     coursesMeta: null,
+    materials: [],
+    materialsLoaded: false,
   }
 
-  it('clearSession resets auth, dashboard, profile and courses (used on expired sessions)', () => {
+  it('clearSession resets auth, dashboard, profile, courses and materials (used on expired sessions)', () => {
     const stores = fillEveryStore()
 
     stores.auth.clearSession()

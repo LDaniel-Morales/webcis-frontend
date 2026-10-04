@@ -8,6 +8,7 @@ import {
 } from '@/services/auth.service'
 import { useCoursesStore } from '@/stores/courses'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useMaterialsStore } from '@/stores/materials'
 import { useProfileStore } from '@/stores/profile'
 
 // Campos de UserResource (backend WebCIS). El usuario se guarda con estos
@@ -55,6 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
     useDashboardStore().clear()
     useProfileStore().clear()
     useCoursesStore().clear()
+    useMaterialsStore().clear()
   }
 
   function setUser(serverUser) {
