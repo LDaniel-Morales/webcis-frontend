@@ -3,12 +3,23 @@ import { defineStore } from 'pinia'
 
 import { getCourses } from '@/services/course.service'
 
-// Filtros de GET /courses con los nombres de CourseIndexRequest.
+// Todos los filtros de GET /courses, con los nombres y límites de
+// CourseIndexRequest:
+// - page ≥ 1, per_page 1-50
+// - search ≤ 100 caracteres (título, descripción o código)
+// - categories[] / subjects[]: 1-5 códigos existentes (cat_code / sub_code)
+// - created_from / created_to: fechas (YYYY-MM-DD), from ≤ to
+// - sort: title | created_at | updated_at
+// - order: asc | desc. Vacío = el backend usa desc.
 //
-// `order` no se envía a propósito: CourseService::paginate() hace
-// `$order->value` sobre el string validado, así que mandar order=asc|desc
-// responde 500 (bug del backend). Sin `order` el backend usa desc por
-// defecto. Cuando lo corrijan, basta con agregar `order` a los filtros.
+// `order` se envía tal cual aunque hoy responde 500 (BUG-04 en
+// md/notas/bugsBack.md): el error se muestra en la vista a propósito para
+// que sea evidente.
+export const SORT_OPTIONS = ['title', 'created_at', 'updated_at']
+export const ORDER_OPTIONS = ['asc', 'desc']
+export const PER_PAGE_OPTIONS = [6, 12, 24, 48]
+export const MAX_CODES = 5
+
 function defaultFilters() {
   return {
     page: 1,
@@ -16,7 +27,10 @@ function defaultFilters() {
     search: '',
     categories: [],
     subjects: [],
+    created_from: '',
+    created_to: '',
     sort: 'created_at',
+    order: '',
   }
 }
 
@@ -70,8 +84,7 @@ export const useCoursesStore = defineStore('courses', () => {
   function toggleFilterCode(key, code) {
     const current = filters.value[key]
     const next = current.includes(code) ? current.filter((value) => value !== code) : [...current, code]
-    // categories / subjects: máx. 5 en CourseIndexRequest.
-    return setFilters({ [key]: next.slice(0, 5) })
+    return setFilters({ [key]: next.slice(0, MAX_CODES) })
   }
 
   function resetFilters() {

@@ -2,15 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 import CourseCard from '@/components/app/courses/CourseCard.vue'
-import { useCoursesStore } from '@/stores/courses'
+import { ORDER_OPTIONS, PER_PAGE_OPTIONS, SORT_OPTIONS, useCoursesStore } from '@/stores/courses'
 
-// Opciones de `sort` aceptadas por CourseIndexRequest. Sin `order` (ver nota
-// en stores/courses.js) el backend ordena desc; por eso no se ofrece
-// "Título A-Z", que necesitaría order=asc.
-const SORT_OPTIONS = [
-  { value: 'created_at', label: 'Más recientes' },
-  { value: 'updated_at', label: 'Actualizados recientemente' },
-]
+const SORT_LABELS = { title: 'Título', created_at: 'Fecha de creación', updated_at: 'Última actualización' }
+const ORDER_LABELS = { asc: 'Ascendente', desc: 'Descendente' }
 
 const courses = useCoursesStore()
 const search = ref(courses.filters.search)
@@ -50,7 +45,26 @@ function clearAll() {
   courses.resetFilters()
 }
 
-const hasFilters = computed(() => Boolean(courses.filters.search) || activeFilters.value.length > 0)
+const hasFilters = computed(
+  () =>
+    Boolean(courses.filters.search) ||
+    Boolean(courses.filters.created_from) ||
+    Boolean(courses.filters.created_to) ||
+    activeFilters.value.length > 0,
+)
+
+// Error del backend tal cual (código, mensaje y errores de validación 422),
+// para que sea evidente qué respondió la API.
+const errorDetails = computed(() => {
+  const err = courses.error
+  if (!err) return null
+  const validation = Object.values(err.data?.errors ?? {}).flat()
+  return {
+    title: err.status ? `Error ${err.status}` : 'Error de red',
+    message: err.message,
+    validation,
+  }
+})
 const currentPage = computed(() => courses.meta?.current_page ?? 1)
 const lastPage = computed(() => courses.meta?.last_page ?? 1)
 </script>
@@ -62,7 +76,7 @@ const lastPage = computed(() => courses.meta?.last_page ?? 1)
       Cursos publicados por la comunidad de Ingeniería en Sistemas.
     </p>
 
-    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+    <div class="mt-6 flex flex-col gap-3">
       <label class="sr-only" for="course-search">Buscar cursos</label>
       <input
         id="course-search"
@@ -70,18 +84,70 @@ const lastPage = computed(() => courses.meta?.last_page ?? 1)
         type="search"
         maxlength="100"
         placeholder="Buscar por título, descripción o código"
-        class="h-12 flex-1 rounded-[13px] border-[1.5px] border-white/15 bg-white px-4 font-display text-[14.5px] text-texto outline-none focus:border-acento"
+        class="h-12 w-full rounded-[13px] border-[1.5px] border-white/15 bg-white px-4 font-display text-[14.5px] text-texto outline-none focus:border-acento"
         @input="onSearchInput"
       >
-      <label class="sr-only" for="course-sort">Ordenar</label>
-      <select
-        id="course-sort"
-        :value="courses.filters.sort"
-        class="h-12 rounded-[13px] border-[1.5px] border-white/15 bg-white px-3 font-display text-[14.5px] text-texto outline-none"
-        @change="courses.setFilters({ sort: $event.target.value })"
-      >
-        <option v-for="option in SORT_OPTIONS" :key="option.value" :value="option.value">{{ option.label }}</option>
-      </select>
+
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <label class="flex flex-col gap-1 font-display text-xs font-semibold text-white/70">
+          Ordenar por
+          <select
+            :value="courses.filters.sort"
+            class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
+            @change="courses.setFilters({ sort: $event.target.value })"
+          >
+            <option v-for="value in SORT_OPTIONS" :key="value" :value="value">{{ SORT_LABELS[value] }}</option>
+          </select>
+        </label>
+
+        <label class="flex flex-col gap-1 font-display text-xs font-semibold text-white/70">
+          Dirección
+          <select
+            :value="courses.filters.order"
+            class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
+            @change="courses.setFilters({ order: $event.target.value })"
+          >
+            <option value="">Predeterminada</option>
+            <option v-for="value in ORDER_OPTIONS" :key="value" :value="value">{{ ORDER_LABELS[value] }}</option>
+          </select>
+        </label>
+
+        <label class="flex flex-col gap-1 font-display text-xs font-semibold text-white/70">
+          Creado desde
+          <input
+            type="date"
+            :value="courses.filters.created_from"
+            :max="courses.filters.created_to || undefined"
+            class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
+            @change="courses.setFilters({ created_from: $event.target.value })"
+          >
+        </label>
+
+        <label class="flex flex-col gap-1 font-display text-xs font-semibold text-white/70">
+          Creado hasta
+          <input
+            type="date"
+            :value="courses.filters.created_to"
+            :min="courses.filters.created_from || undefined"
+            class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
+            @change="courses.setFilters({ created_to: $event.target.value })"
+          >
+        </label>
+
+        <label class="flex flex-col gap-1 font-display text-xs font-semibold text-white/70">
+          Cursos por página
+          <select
+            :value="courses.filters.per_page"
+            class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
+            @change="courses.setFilters({ per_page: Number($event.target.value) })"
+          >
+            <option v-for="value in PER_PAGE_OPTIONS" :key="value" :value="value">{{ value }}</option>
+          </select>
+        </label>
+      </div>
+      <p class="font-body text-xs text-white/50">
+        Para filtrar por categoría o materia, toca sus etiquetas en las tarjetas de los cursos.
+      </p>
     </div>
 
     <div v-if="hasFilters" class="mt-3 flex flex-wrap items-center gap-2">
@@ -105,13 +171,17 @@ const lastPage = computed(() => courses.meta?.last_page ?? 1)
 
     <p v-if="courses.loading && !courses.data.length" class="mt-8 font-body text-white/70">Cargando cursos…</p>
 
-    <p
-      v-else-if="courses.error"
-      class="mt-8 rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-body text-sm text-white/70"
+    <div
+      v-else-if="errorDetails"
+      class="mt-8 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 font-body text-sm text-white/85"
       role="alert"
     >
-      No pudimos cargar el catálogo. {{ courses.error.message }}
-    </p>
+      <p class="font-display font-bold text-red-300">{{ errorDetails.title }} · No pudimos cargar el catálogo</p>
+      <ul v-if="errorDetails.validation.length" class="mt-1 list-disc pl-5">
+        <li v-for="msg in errorDetails.validation" :key="msg">{{ msg }}</li>
+      </ul>
+      <p v-else class="mt-1 break-words">{{ errorDetails.message }}</p>
+    </div>
 
     <div
       v-else-if="!courses.data.length"
