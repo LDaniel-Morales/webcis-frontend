@@ -24,6 +24,7 @@ const router = createRouter({
         { path: '', component: () => import('@/views/app/DashboardView.vue') },
         { path: 'explorer', component: () => import('@/views/app/ExplorerView.vue') },
         { path: 'repository', component: () => import('@/views/app/RepositoryView.vue') },
+        { path: 'profile', component: () => import('@/views/app/ProfileView.vue') },
       ],
     },
     {
@@ -46,7 +47,7 @@ export async function authNavigationGuard(to) {
   }
 
   if (to.meta.guest && auth.isAuthenticated) return { path: '/app' }
-  if (to.meta.requiresAdmin && auth.role !== 'admin') return { path: '/app' }
+  if (to.meta.requiresAdmin && auth.type !== 'Admin') return { path: '/app' }
 
   return true
 }

@@ -80,11 +80,15 @@ export async function login({ email, username, pass, password, role }) {
   return authPost('/login', payload)
 }
 
-// El backend (WebCIS, rama feature/dashboard-endpoint, aún sin mergear) no
-// expone un /user//me dedicado: la verificación de sesión se hace contra
-// GET /dashboard (protegido con auth:sanctum), que hoy solo devuelve
-// { username, user_role } y eventualmente sumará imagen de perfil, cursos,
-// medallas y % de avance. Se usa aquí como fuente de identidad/sesión.
+// GET /me (UserController::me, auth:sanctum) → { user: UserResource }.
+// Fuente de identidad/sesión: el guard verifica la sesión con este endpoint.
+export async function getMe() {
+  return apiGet('/me')
+}
+
+// GET /dashboard (DashboardController::index) → { user, medals, courses,
+// progress, recent_course_progress, recent_courses }. Ya no se usa para
+// verificar sesión: lo pide solo el store de dashboard (stores/dashboard.js).
 export async function getDashboard() {
   return apiGet('/dashboard')
 }

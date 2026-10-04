@@ -1,30 +1,26 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/stores/auth'
+import { roleLabel as labelForRole } from '@/utils/roleLabels'
+import { initialsFromName } from '@/utils/text'
 
 const router = useRouter()
 const auth = useAuthStore()
 const open = ref(false)
 
-const roleLabels = {
-  student: 'Alumno',
-  professor: 'Profesor',
-  extern: 'Egresado',
-  admin: 'Administrador',
-}
-
 const displayName = computed(() => auth.user?.name ?? 'Usuario')
-const initials = computed(() =>
-  displayName.value
-    .split(' ')
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase(),
-)
-const roleLabel = computed(() => roleLabels[auth.role] ?? '')
+const profilePicture = computed(() => auth.user?.profile_picture ?? null)
+// Si la foto no carga, se muestran las iniciales; se reintenta al cambiar la URL.
+const pictureFailed = ref(false)
+watch(profilePicture, () => { pictureFailed.value = false })
+const initials = computed(() => initialsFromName(displayName.value))
+const roleLabel = computed(() => labelForRole(auth.type))
+
+function goToProfile() {
+  open.value = false
+}
 
 async function handleLogout() {
   open.value = false
@@ -41,7 +37,15 @@ async function handleLogout() {
       :aria-expanded="open"
       @click="open = !open"
     >
+      <img
+        v-if="profilePicture && !pictureFailed"
+        :src="profilePicture"
+        alt=""
+        class="size-10 rounded-full border-2 border-acento object-cover"
+        @error="pictureFailed = true"
+      >
       <span
+        v-else
         class="flex size-10 items-center justify-center rounded-full border-2 border-acento bg-primario font-display text-sm font-semibold"
       >{{ initials }}</span>
       <span class="hidden text-left leading-tight md:block">
@@ -59,10 +63,11 @@ async function handleLogout() {
         <p class="font-display text-sm font-semibold">{{ displayName }}</p>
       </div>
 
-      <span
-        class="mt-1 flex cursor-not-allowed items-center gap-2 rounded-lg px-3 py-2 font-display text-sm text-texto/40"
-        title="Próximamente"
-      >Mi perfil</span>
+      <RouterLink
+        to="/app/profile"
+        class="mt-1 flex items-center gap-2 rounded-lg px-3 py-2 font-display text-sm text-texto hover:bg-black/5"
+        @click="goToProfile"
+      >Mi perfil</RouterLink>
       <span
         class="flex cursor-not-allowed items-center gap-2 rounded-lg px-3 py-2 font-display text-sm text-texto/40"
         title="Próximamente"

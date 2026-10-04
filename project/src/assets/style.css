@@ -32,6 +32,9 @@
   --color-gris-interfaz: #E0E0E0;
   --color-oro-soft: #D9A94E;
   --color-oro-faint: rgba(207, 163, 78, 0.18);
+  --color-oro-ingenieril: #CFA34E;
+  --color-negro-sintaxis: #1C1C1C;
+  --color-azul-paquete: #3B82F6;
   --color-sidebar: #08101E;
   --gradient-page: linear-gradient(180deg, #193A68 0%, #0F1D32 46%, #0A0A0A 100%);
   --gradient-gold: linear-gradient(90deg, #D9A94E 0%, #CFA34E 100%);
@@ -43,6 +46,8 @@
   --color-tag-web-fg: #1E5631;
   --color-tag-datos-bg: #F4D9A0;
   --color-tag-datos-fg: #7A4E12;
+  --color-tag-algoritmo-bg: #F7A8C4;
+  --color-tag-algoritmo-fg: #6E1233;
   --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.18);
   --radius-card: 24px;
