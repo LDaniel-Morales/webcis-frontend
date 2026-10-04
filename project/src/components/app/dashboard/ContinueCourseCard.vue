@@ -1,14 +1,25 @@
 <script setup>
+import { computed } from 'vue'
+
 import BaseButton from '@/components/ui/BaseButton.vue'
 import ProgressBar from '@/components/ui/ProgressBar.vue'
+import { ENROLLMENT_STATUS } from '@/utils/enums'
 
-defineProps({
-  // dashboard.latestCourse (stores/dashboard.js): { token, title, shortTitle,
-  // icon, lastAccessedAt }, o null si no hay cursos recientes con actividad.
+const props = defineProps({
   course: {
     type: Object,
     default: null,
   },
+  recentCourseProgress: {
+    type: Number,
+    default: null,
+  },
+})
+
+const percent = computed(() => {
+  if (!props.course) return 0
+  if (props.course.status === ENROLLMENT_STATUS.Completed) return 100
+  return props.recentCourseProgress ?? 0
 })
 </script>
 
@@ -32,16 +43,11 @@ defineProps({
       </div>
       <div class="min-w-0 flex-1">
         <p class="font-display text-2xl font-bold text-texto">{{ course.title }}</p>
-        <p class="mt-0.5 font-display text-sm text-texto/60">{{ course.shortTitle }}</p>
+        <p class="mt-0.5 font-display text-sm text-texto/60">{{ course.short_title }}</p>
         <div class="mt-3.5">
-          <ProgressBar :percent="0" />
+          <ProgressBar :percent="percent" />
         </div>
-        <!-- /dashboard no reporta % de avance por curso individual (progress
-             es un promedio global de todos los cursos activos, confirmado en
-             EnrollmentService::progress() del backend) — se deja explícito en
-             vez de ocultarlo o de mostrar el promedio global como si fuera de
-             este curso. -->
-        <p class="mt-1.5 font-body text-xs text-texto/50">Avance de este curso aún no disponible</p>
+        <p class="mt-1.5 font-body text-xs text-texto/50">{{ percent }}% completado</p>
       </div>
     </div>
     <p v-else class="mt-4 font-body text-sm text-texto/60">
@@ -49,7 +55,7 @@ defineProps({
     </p>
 
     <div class="mt-5 flex justify-end">
-      <RouterLink to="/app/explorer">
+      <RouterLink :to="course ? `/app/courses/${course.code}` : '/app/explorer'">
         <BaseButton variant="blue">{{ course ? 'Continuar curso' : 'Explorar cursos' }}</BaseButton>
       </RouterLink>
     </div>

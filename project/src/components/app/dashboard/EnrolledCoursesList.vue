@@ -1,35 +1,23 @@
 <script setup>
 import BaseButton from '@/components/ui/BaseButton.vue'
+import { formatDate } from '@/utils/date'
 
 defineProps({
-  // dashboard.recentCourses (stores/dashboard.js): hasta 5 cursos activos con
-  // actividad reciente, cada uno { token, title, shortTitle, icon,
-  // lastAccessedAt }. No es necesariamente el total de cursos inscritos (ver
-  // gap documentado en DashboardView.vue).
   courses: {
     type: Array,
     default: () => [],
   },
 })
-
-function formatLastAccessed(value) {
-  if (!value) return null
-  // "2026-07-27 23:52:09" (formato MySQL) -> parseable en todos los
-  // navegadores solo si se convierte a ISO 8601 primero.
-  const date = new Date(value.replace(' ', 'T'))
-  if (Number.isNaN(date.getTime())) return null
-  return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
-}
 </script>
 
 <template>
   <div>
-    <h2 class="mb-4 font-display text-xl font-bold text-acento">Mis Cursos</h2>
+    <h2 class="mb-4 font-display text-xl font-bold text-acento">Cursos recientes</h2>
 
     <div v-if="courses.length" class="flex flex-col gap-4">
       <div
         v-for="course in courses"
-        :key="course.token"
+        :key="course.code"
         class="grid grid-cols-[160px_1fr] gap-6 rounded-(--radius-card) bg-white p-6 shadow-(--shadow-card)"
       >
         <img
@@ -45,15 +33,15 @@ function formatLastAccessed(value) {
         </div>
         <div class="flex flex-col">
           <p class="font-display text-xl font-bold text-texto">{{ course.title }}</p>
-          <p class="mt-1 font-display text-base font-semibold text-texto">{{ course.shortTitle }}</p>
-          <p v-if="course.lastAccessedAt" class="mt-2 font-body text-sm text-texto/70">
-            Último acceso: {{ formatLastAccessed(course.lastAccessedAt) }}
+          <p class="mt-1 font-display text-base font-semibold text-texto">{{ course.short_title }}</p>
+          <p v-if="course.last_accessed_at" class="mt-2 font-body text-sm text-texto/70">
+            Último acceso: {{ formatDate(course.last_accessed_at) }}
           </p>
           <div class="mt-auto flex justify-end gap-3 pt-4">
-            <RouterLink :to="`/app/repository`">
+            <RouterLink :to="`/app/courses/${course.code}`">
               <BaseButton variant="gold">Contenido</BaseButton>
             </RouterLink>
-            <RouterLink :to="`/app/explorer`">
+            <RouterLink :to="`/app/courses/${course.code}`">
               <BaseButton variant="blue">Continuar</BaseButton>
             </RouterLink>
           </div>
