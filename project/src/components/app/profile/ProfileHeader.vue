@@ -1,5 +1,9 @@
 <script setup>
-defineProps({
+import { computed, ref, watch } from 'vue'
+
+import { BANNER_OPTIONS } from './banner-options'
+
+const props = defineProps({
   bannerSrc: {
     type: String,
     required: true,
@@ -27,13 +31,23 @@ defineProps({
 })
 
 const tab = defineModel('tab', { default: 'muro' })
+
+// Si la URL de la foto o del banner no carga (p. ej. 403 del storage del
+// backend), se muestran las iniciales o el banner por defecto en vez del
+// ícono de imagen rota. Al cambiar la URL (subida nueva) se reintenta.
+const avatarFailed = ref(false)
+const bannerFailed = ref(false)
+watch(() => props.avatarSrc, () => { avatarFailed.value = false })
+watch(() => props.bannerSrc, () => { bannerFailed.value = false })
+
+const shownBannerSrc = computed(() => (bannerFailed.value ? BANNER_OPTIONS[0].src : props.bannerSrc))
 defineEmits(['open-avatar', 'open-banner'])
 </script>
 
 <template>
   <div>
     <div class="relative h-[140px] overflow-hidden sm:h-[200px]">
-      <img :src="bannerSrc" alt="" class="size-full object-cover">
+      <img :src="shownBannerSrc" alt="" class="size-full object-cover" @error="bannerFailed = true">
       <div
         class="absolute inset-0"
         style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(10, 10, 10, 0.55))"
@@ -61,7 +75,13 @@ defineEmits(['open-avatar', 'open-banner'])
             class="size-full overflow-hidden rounded-full border-4 border-[#e7e5df]"
             style="box-shadow: 0 0 0 3px var(--color-oro-ingenieril)"
           >
-            <img v-if="avatarSrc" :src="avatarSrc" alt="" class="size-full object-cover">
+            <img
+              v-if="avatarSrc && !avatarFailed"
+              :src="avatarSrc"
+              alt=""
+              class="size-full object-cover"
+              @error="avatarFailed = true"
+            >
             <div
               v-else
               class="flex size-full items-center justify-center bg-primario font-display text-lg font-semibold text-white sm:text-2xl"

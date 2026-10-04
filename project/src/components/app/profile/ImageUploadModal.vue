@@ -43,6 +43,9 @@ const props = defineProps({
 const emit = defineEmits(['close', 'save'])
 
 const previewSrc = ref(null)
+// La vista previa arranca con la imagen actual; si esa URL no carga, se
+// muestra el texto de "elegir imagen" en vez del ícono roto.
+const previewFailed = ref(false)
 const selectedFile = ref(null)
 const localError = ref(null)
 const fileInput = ref(null)
@@ -52,6 +55,7 @@ watch(
   (isOpen) => {
     if (!isOpen) return
     previewSrc.value = props.currentSrc
+    previewFailed.value = false
     selectedFile.value = null
     localError.value = null
   },
@@ -71,6 +75,7 @@ async function onFileChange(event) {
 
   selectedFile.value = file
   previewSrc.value = URL.createObjectURL(file)
+  previewFailed.value = false
 }
 
 function confirm() {
@@ -94,7 +99,13 @@ function confirm() {
         :class="shape === 'banner' ? 'h-40 w-full rounded-2xl' : 'size-55 rounded-full'"
         @click="pickFile"
       >
-        <img v-if="previewSrc" :src="previewSrc" alt="" class="size-full object-cover">
+        <img
+          v-if="previewSrc && !previewFailed"
+          :src="previewSrc"
+          alt=""
+          class="size-full object-cover"
+          @error="previewFailed = true"
+        >
         <span v-else class="px-6 text-center font-display text-sm text-[#999]">Haz click para elegir una imagen</span>
       </button>
       <input ref="fileInput" type="file" :accept="IMAGE_ACCEPT" class="hidden" @change="onFileChange">

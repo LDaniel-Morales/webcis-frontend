@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/stores/auth'
@@ -12,6 +12,9 @@ const open = ref(false)
 
 const displayName = computed(() => auth.user?.name ?? 'Usuario')
 const profilePicture = computed(() => auth.user?.profile_picture ?? null)
+// Si la foto no carga, se muestran las iniciales; se reintenta al cambiar la URL.
+const pictureFailed = ref(false)
+watch(profilePicture, () => { pictureFailed.value = false })
 const initials = computed(() => initialsFromName(displayName.value))
 const roleLabel = computed(() => labelForRole(auth.type))
 
@@ -35,10 +38,11 @@ async function handleLogout() {
       @click="open = !open"
     >
       <img
-        v-if="profilePicture"
+        v-if="profilePicture && !pictureFailed"
         :src="profilePicture"
         alt=""
         class="size-10 rounded-full border-2 border-acento object-cover"
+        @error="pictureFailed = true"
       >
       <span
         v-else
