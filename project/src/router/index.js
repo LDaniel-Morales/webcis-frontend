@@ -25,6 +25,7 @@ const router = createRouter({
         { path: 'explorer', component: () => import('@/views/app/ExplorerView.vue') },
         { path: 'courses/:code', component: () => import('@/views/app/CourseDetailView.vue') },
         { path: 'repository', component: () => import('@/views/app/RepositoryView.vue') },
+        { path: 'repository/:id', component: () => import('@/views/app/MaterialDetailView.vue') },
         { path: 'profile', component: () => import('@/views/app/ProfileView.vue') },
       ],
     },

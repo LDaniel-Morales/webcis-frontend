@@ -52,6 +52,7 @@ const navItems = computed(() => [
 // El detalle de curso (/app/courses/:code) cuenta como parte de "Cursos".
 function isActive(path) {
   if (path === '/app/explorer') return route.path === path || route.path.startsWith('/app/courses/')
+  if (path === '/app/repository') return route.path === path || route.path.startsWith('/app/repository/')
   return route.path === path
 }
 
