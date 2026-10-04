@@ -1,23 +1,71 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import CourseCard from '@/components/app/courses/CourseCard.vue'
-import { ORDER_OPTIONS, PER_PAGE_OPTIONS, SORT_OPTIONS, useCoursesStore } from '@/stores/courses'
+import {
+  filtersToQuery,
+  isSameQuery,
+  ORDER_OPTIONS,
+  PER_PAGE_OPTIONS,
+  SORT_OPTIONS,
+  useCoursesStore,
+} from '@/stores/courses'
 
 const SORT_LABELS = { title: 'Título', created_at: 'Fecha de creación', updated_at: 'Última actualización' }
 const ORDER_LABELS = { asc: 'Ascendente', desc: 'Descendente' }
 
+const route = useRoute()
+const router = useRouter()
 const courses = useCoursesStore()
 const search = ref(courses.filters.search)
 let searchTimer = null
 
-// No hay endpoint para listar categorías/materias: los nombres de los filtros
-// activos se recuerdan a partir de los chips de los cursos ya cargados.
+// No hay endpoint para listar categorías/materias (FALT-01/02): los nombres
+// de los filtros activos se recuerdan a partir de los cursos ya cargados.
 const knownNames = reactive({ categories: {}, subjects: {} })
 
+watch(
+  () => courses.data,
+  (list) => {
+    for (const course of list) {
+      for (const category of course.categories ?? []) knownNames.categories[category.code] = category.name
+      for (const subject of course.subjects ?? []) knownNames.subjects[subject.code] = subject.name
+    }
+  },
+)
+
+// Filtros ↔ URL. La URL es la entrada: al montar (recarga, enlace compartido,
+// "Atrás" desde el detalle) y cuando cambia (Atrás/Adelante o edición a mano)
+// se leen y validan sus filtros. Cada cambio de filtro se escribe en la URL
+// con replace, para no llenar el historial con un paso por cada tecla.
 onMounted(() => {
-  courses.fetchCourses()
+  courses.applyQuery(route.query)
 })
+
+watch(
+  () => route.query,
+  (query) => {
+    if (route.path !== '/app/explorer') return
+    if (!isSameQuery(query, filtersToQuery(courses.filters))) courses.applyQuery(query)
+  },
+)
+
+watch(
+  () => courses.filters,
+  (filters) => {
+    if (filters.search !== search.value.trim()) search.value = filters.search
+    const query = filtersToQuery(filters)
+    if (!isSameQuery(query, route.query)) router.replace({ query })
+  },
+  { deep: true },
+)
+
+// per_page puede llegar por URL con cualquier valor válido (1-50); se agrega
+// al select si no está entre las opciones.
+const perPageOptions = computed(() =>
+  [...new Set([...PER_PAGE_OPTIONS, courses.filters.per_page])].sort((a, b) => a - b),
+)
 
 onBeforeUnmount(() => {
   clearTimeout(searchTimer)
@@ -141,7 +189,7 @@ const lastPage = computed(() => courses.meta?.last_page ?? 1)
             class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
             @change="courses.setFilters({ per_page: Number($event.target.value) })"
           >
-            <option v-for="value in PER_PAGE_OPTIONS" :key="value" :value="value">{{ value }}</option>
+            <option v-for="value in perPageOptions" :key="value" :value="value">{{ value }}</option>
           </select>
         </label>
       </div>
