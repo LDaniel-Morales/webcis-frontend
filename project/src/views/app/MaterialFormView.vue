@@ -72,36 +72,48 @@ function handleCancel() {
 </script>
 
 <template>
-  <section class="mx-auto max-w-[760px]">
-    <RouterLink to="/app/repository" class="font-display text-sm font-semibold text-acento hover:underline">
-      ← Volver al repositorio
+  <section>
+    <RouterLink
+      to="/app/repository"
+      class="mb-4 inline-flex items-center gap-[7px] font-display text-sm font-semibold text-white/70 hover:text-white"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6" /></svg>
+      Volver al repositorio
     </RouterLink>
-    <h1 class="mt-4 font-display text-3xl font-bold text-white">
-      {{ isEdit ? 'Editar material' : 'Nuevo material' }}
-    </h1>
+
+    <p v-if="loading" class="font-body text-white/70">Cargando material…</p>
 
     <div
-      v-if="error"
-      class="mt-5 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 font-body text-sm text-white/85"
+      v-else-if="error && !initialValues"
+      class="flex flex-col items-center gap-1.5 rounded-3xl border border-[#d6788c]/35 bg-[#610d31]/18 px-6 py-[60px] text-center"
       role="alert"
     >
-      <p class="font-display font-bold text-red-300">
-        {{ error.status ? `Error ${error.status}` : 'Error de red' }} ·
-        {{ isEdit && !initialValues ? 'No pudimos cargar el material' : 'No pudimos guardar el material' }}
+      <p class="font-display text-2xl font-bold text-white">No se pudo cargar el material</p>
+      <p class="max-w-[440px] wrap-break-word font-display text-base text-white/65">
+        {{ error.status ? `Error ${error.status}` : 'Error de red' }} · {{ error.message }}
       </p>
-      <p class="mt-1 break-words">{{ error.message }}</p>
     </div>
 
-    <p v-if="loading" class="mt-6 font-body text-white/70">Cargando material…</p>
-
-    <div v-else-if="initialValues" class="mt-5">
-      <MaterialForm
-        :initial-values="initialValues"
-        :submit-label="isEdit ? 'Guardar cambios' : 'Crear material'"
-        :saving="saving"
-        @submit="handleSubmit"
-        @cancel="handleCancel"
-      />
-    </div>
+    <MaterialForm
+      v-else-if="initialValues"
+      :initial-values="initialValues"
+      :is-edit="isEdit"
+      :saving="saving"
+      @submit="handleSubmit"
+      @cancel="handleCancel"
+    >
+      <template #alert>
+        <div
+          v-if="error"
+          class="mb-[18px] rounded-2xl border border-[#d6788c]/35 bg-[#610d31]/18 px-5 py-4 font-body text-sm text-white/85"
+          role="alert"
+        >
+          <p class="font-display font-bold text-[#e58ba1]">
+            {{ error.status ? `Error ${error.status}` : 'Error de red' }} · No pudimos guardar el material
+          </p>
+          <p class="mt-1 wrap-break-word">{{ error.message }}</p>
+        </div>
+      </template>
+    </MaterialForm>
   </section>
 </template>
