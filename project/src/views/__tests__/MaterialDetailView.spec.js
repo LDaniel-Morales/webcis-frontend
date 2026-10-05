@@ -1,10 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { reactive } from 'vue'
 
 import { deleteMaterial, getMaterial } from '@/services/material.service'
 import MaterialDetailView from '@/views/app/MaterialDetailView.vue'
+
+enableAutoUnmount(afterEach)
 
 const route = reactive({ params: { id: '1' } })
 const push = vi.fn()
@@ -59,6 +61,42 @@ describe('MaterialDetailView', () => {
     expect(wrapper.text()).toContain('Manual de programación orientada a objetos')
     expect(wrapper.text()).toContain('Por 9f1c2d3e-0000-4000-8000-000000000001')
     expect(wrapper.find('a[href="/app/repository/1/edit"]').exists()).toBe(true)
+  })
+
+  it('loads a sample material from the mock file without calling the backend', async () => {
+    route.params.id = 'demo-1'
+    const wrapper = mount(MaterialDetailView, { global })
+    await flushPromises()
+
+    expect(getMaterial).not.toHaveBeenCalled()
+    expect(wrapper.get('[role="status"]').text()).toContain('Datos de ejemplo')
+    expect(wrapper.text()).toContain('Manual de POO en C++')
+    expect(wrapper.text()).toContain('Por Prof. C. Méndez')
+    expect(wrapper.text()).toContain('Publicado el 12 mar 2026')
+    expect(wrapper.text()).toContain('1,248')
+    expect(wrapper.text()).toContain('Manual_POO_Cpp.pdf')
+    expect(wrapper.findAll('button[title="Aún no disponible en el servidor"]')).toHaveLength(5)
+    expect(wrapper.findAll('button[title="Aún no disponible en el servidor"]').every((button) => button.attributes('disabled') !== undefined)).toBe(true)
+    expect(wrapper.find('a[href="/app/repository/demo-1/edit"]').exists()).toBe(false)
+  })
+
+  it('shows 404 for an unknown sample material without calling the backend', async () => {
+    route.params.id = 'demo-99'
+    const wrapper = mount(MaterialDetailView, { global })
+    await flushPromises()
+
+    expect(getMaterial).not.toHaveBeenCalled()
+    expect(wrapper.get('[role="alert"]').text()).toContain('Error 404')
+  })
+
+  it('shows that files are not available yet for a real material', async () => {
+    vi.mocked(getMaterial).mockResolvedValue(MATERIAL)
+    const wrapper = mount(MaterialDetailView, { global })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Archivos')
+    expect(wrapper.text()).toContain('Aún no disponible en el servidor')
+    expect(wrapper.text()).not.toContain('Descargar todo')
   })
 
   it('shows a not-found message on 404', async () => {
