@@ -57,7 +57,7 @@ describe('MaterialDetailView', () => {
     expect(wrapper.text()).toContain('MAN-POO')
     expect(wrapper.text()).toContain('Manual de POO')
     expect(wrapper.text()).toContain('Manual de programación orientada a objetos')
-    expect(wrapper.text()).toContain('Autor: 9f1c2d3e-0000-4000-8000-000000000001')
+    expect(wrapper.text()).toContain('Por 9f1c2d3e-0000-4000-8000-000000000001')
     expect(wrapper.find('a[href="/app/repository/1/edit"]').exists()).toBe(true)
   })
 
