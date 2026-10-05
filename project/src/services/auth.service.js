@@ -94,7 +94,7 @@ export async function getDashboard() {
 }
 
 export async function logout() {
-  return authPost('/logout')
+  return apiPost(`${AUTH_BASE}/logout`)
 }
 
 export async function sendVerificationEmail(payload) {

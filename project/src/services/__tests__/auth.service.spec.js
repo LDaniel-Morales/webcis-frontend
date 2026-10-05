@@ -49,9 +49,13 @@ describe('auth service', () => {
 
     expect(apiGet).toHaveBeenCalledWith('/me')
     expect(apiGet).toHaveBeenCalledWith('/dashboard')
-    expect(apiGet).toHaveBeenCalledWith('/sanctum/csrf-cookie', {
-      baseURL: backendBaseURL,
-    })
+    expect(apiPost).toHaveBeenCalledWith('/auth/logout')
+  })
+
+  it('logs out with the current CSRF token, without requesting a new CSRF cookie', async () => {
+    await logout()
+
+    expect(apiGet).not.toHaveBeenCalledWith('/sanctum/csrf-cookie', { baseURL: backendBaseURL })
     expect(apiPost).toHaveBeenCalledWith('/auth/logout')
   })
 
