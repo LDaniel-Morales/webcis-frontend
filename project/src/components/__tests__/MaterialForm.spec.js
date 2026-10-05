@@ -81,4 +81,40 @@ describe('MaterialForm', () => {
     await wrapper.findAll('button').find((button) => button.text() === 'Cancelar').trigger('click')
     expect(wrapper.emitted('cancel')).toHaveLength(1)
   })
+
+  it('shows the upload header with the draft action disabled', () => {
+    const wrapper = mount(MaterialForm)
+    const draft = wrapper.findAll('button').find((button) => button.text() === 'Guardar borrador')
+
+    expect(wrapper.get('h1').text()).toBe('Subir material')
+    expect(wrapper.text()).toContain('Se revisará antes de publicarse.')
+    expect(draft.attributes('disabled')).toBeDefined()
+    expect(draft.attributes('title')).toBe('Aún no disponible en el servidor')
+  })
+
+  it('marks subject, categories and files as not available yet', () => {
+    const wrapper = mount(MaterialForm)
+
+    expect(wrapper.text().match(/Aún no disponible en el servidor/g)).toHaveLength(3)
+    expect(wrapper.findAll('[aria-disabled="true"]')).toHaveLength(3)
+    expect(wrapper.text()).toContain('Arrastra y suelta tus archivos aquí')
+  })
+
+  it('shows the edit header without the draft action', () => {
+    const wrapper = mount(MaterialForm, { props: { isEdit: true } })
+
+    expect(wrapper.get('h1').text()).toBe('Editar material')
+    expect(wrapper.findAll('button').some((button) => button.text() === 'Guardar borrador')).toBe(false)
+  })
+
+  it('renders the alert slot between the header and the cards', () => {
+    const wrapper = mount(MaterialForm, {
+      slots: { alert: '<div role="alert">Error 500 · No pudimos guardar el material</div>' },
+    })
+    const html = wrapper.html()
+
+    expect(wrapper.get('[role="alert"]').text()).toContain('Error 500')
+    expect(html.indexOf('role="alert"')).toBeGreaterThan(html.indexOf('<h1'))
+    expect(html.indexOf('role="alert"')).toBeLessThan(html.indexOf('Información del material'))
+  })
 })
