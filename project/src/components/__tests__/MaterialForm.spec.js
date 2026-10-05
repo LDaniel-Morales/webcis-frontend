@@ -65,16 +65,20 @@ describe('MaterialForm', () => {
     })
   })
 
-  it('shows the submit label and the saving state, and emits cancel', async () => {
-    const wrapper = mount(MaterialForm, { props: { submitLabel: 'Crear material', saving: true } })
+  it('shows the submit label by mode and the saving state, and emits cancel when editing', async () => {
+    const wrapper = mount(MaterialForm, { props: { saving: true } })
+    const submit = () => wrapper.get('button[type="submit"]')
 
-    expect(wrapper.get('button[type="submit"]').text()).toBe('Guardando…')
-    expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
+    expect(submit().text()).toBe('Guardando…')
+    expect(submit().attributes('disabled')).toBeDefined()
 
     await wrapper.setProps({ saving: false })
-    expect(wrapper.get('button[type="submit"]').text()).toBe('Crear material')
+    expect(submit().text()).toBe('Enviar a aprobación')
 
-    await wrapper.get('button[type="button"]').trigger('click')
+    await wrapper.setProps({ isEdit: true })
+    expect(submit().text()).toBe('Guardar cambios')
+
+    await wrapper.findAll('button').find((button) => button.text() === 'Cancelar').trigger('click')
     expect(wrapper.emitted('cancel')).toHaveLength(1)
   })
 })
