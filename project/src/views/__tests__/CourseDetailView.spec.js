@@ -58,6 +58,17 @@ describe('CourseDetailView', () => {
     expect(wrapper.findAll('ol li')).toHaveLength(2)
   })
 
+  it('links every lesson of the index to its lesson view', async () => {
+    vi.mocked(getCourse).mockResolvedValue(COURSE_RESPONSE)
+    const wrapper = mount(CourseDetailView, { global })
+    await flushPromises()
+
+    expect(wrapper.findAll('ol a').map((link) => link.attributes('href'))).toEqual([
+      '/app/courses/LARAVEL-101/lessons/1',
+      '/app/courses/LARAVEL-101/lessons/2',
+    ])
+  })
+
   it('hides the cover when the image fails to load, and retries for another course', async () => {
     vi.mocked(getCourse).mockResolvedValue(COURSE_RESPONSE)
     const wrapper = mount(CourseDetailView, { global })
