@@ -24,6 +24,7 @@ const router = createRouter({
         { path: '', component: () => import('@/views/app/DashboardView.vue') },
         { path: 'explorer', component: () => import('@/views/app/ExplorerView.vue') },
         { path: 'courses/:code', component: () => import('@/views/app/CourseDetailView.vue') },
+        { path: 'courses/:code/lessons/:id', component: () => import('@/views/app/LessonView.vue') },
         { path: 'repository', component: () => import('@/views/app/RepositoryView.vue') },
         { path: 'repository/new', component: () => import('@/views/app/MaterialFormView.vue') },
         { path: 'repository/:id', component: () => import('@/views/app/MaterialDetailView.vue') },
