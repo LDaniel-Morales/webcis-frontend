@@ -10,11 +10,7 @@ import { getCourses } from '@/services/course.service'
 // - categories[] / subjects[]: 1-5 códigos existentes (cat_code / sub_code)
 // - created_from / created_to: fechas (YYYY-MM-DD), from ≤ to
 // - sort: title | created_at | updated_at
-// - order: asc | desc. Vacío = el backend usa desc.
-//
-// `order` se envía tal cual aunque hoy responde 500 (BUG-04 en
-// md/notas/bugsBack.md): el error se muestra en la vista a propósito para
-// que sea evidente.
+// - order: asc | desc
 export const SORT_OPTIONS = ['title', 'created_at', 'updated_at']
 export const ORDER_OPTIONS = ['asc', 'desc']
 export const PER_PAGE_OPTIONS = [6, 12, 24, 48]
@@ -30,8 +26,18 @@ function defaultFilters() {
     created_from: '',
     created_to: '',
     sort: 'created_at',
-    order: '',
+    order: 'desc',
   }
+}
+
+export function todayISO() {
+  const now = new Date()
+  const pad = (value) => String(value).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
+function withDateRange(filters) {
+  return filters.created_from && !filters.created_to ? { ...filters, created_to: todayISO() } : filters
 }
 
 // Quita los filtros vacíos: CourseIndexRequest rechaza `search=''` (string
@@ -88,7 +94,7 @@ export function filtersFromQuery(query = {}) {
   const defaults = defaultFilters()
   const search = firstValue(query.search)
 
-  return {
+  return withDateRange({
     page: readInt(query.page, { min: 1, max: Number.MAX_SAFE_INTEGER }) ?? defaults.page,
     per_page: readInt(query.per_page, { min: 1, max: 50 }) ?? defaults.per_page,
     search: typeof search === 'string' && search.trim().length <= 100 ? search.trim() : defaults.search,
@@ -98,7 +104,7 @@ export function filtersFromQuery(query = {}) {
     created_to: readDate(query.created_to) ?? defaults.created_to,
     sort: readOption(query.sort, SORT_OPTIONS) ?? defaults.sort,
     order: readOption(query.order, ORDER_OPTIONS) ?? defaults.order,
-  }
+  })
 }
 
 // Solo los filtros distintos del valor por defecto: sin filtros, la URL
@@ -156,7 +162,7 @@ export const useCoursesStore = defineStore('courses', () => {
 
   // Cualquier cambio de filtro vuelve a la página 1.
   function setFilters(partial) {
-    filters.value = { ...filters.value, ...partial, page: 1 }
+    filters.value = withDateRange({ ...filters.value, ...partial, page: 1 })
     return fetchCourses()
   }
 

@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 import { getCourses } from '@/services/course.service'
-import { filtersFromQuery, filtersToQuery, isSameQuery, useCoursesStore } from '@/stores/courses'
+import { filtersFromQuery, filtersToQuery, isSameQuery, todayISO, useCoursesStore } from '@/stores/courses'
 
 vi.mock('@/services/course.service', () => ({
   getCourses: vi.fn(),
@@ -17,7 +17,7 @@ const DEFAULT_FILTERS = {
   created_from: '',
   created_to: '',
   sort: 'created_at',
-  order: '',
+  order: 'desc',
 }
 
 // Respuesta real (recortada) del paginador de Laravel en GET /courses.
@@ -43,7 +43,7 @@ describe('courses store', () => {
 
     await expect(courses.fetchCourses()).resolves.toBe(true)
 
-    expect(getCourses).toHaveBeenCalledWith({ page: 1, per_page: 12, sort: 'created_at' })
+    expect(getCourses).toHaveBeenCalledWith({ page: 1, per_page: 12, sort: 'created_at', order: 'desc' })
     expect(courses.data).toEqual(PAGE_RESPONSE.data)
     expect(courses.meta).toEqual(PAGE_RESPONSE.meta)
   })
@@ -128,7 +128,14 @@ describe('courses store', () => {
     await courses.applyQuery({ search: 'laravel', categories: 'web', page: '2' })
 
     expect(courses.filters).toMatchObject({ search: 'laravel', categories: ['web'], page: 2 })
-    expect(getCourses).toHaveBeenCalledWith({ page: 2, per_page: 12, search: 'laravel', categories: ['web'], sort: 'created_at' })
+    expect(getCourses).toHaveBeenCalledWith({
+      page: 2,
+      per_page: 12,
+      search: 'laravel',
+      categories: ['web'],
+      sort: 'created_at',
+      order: 'desc',
+    })
   })
 })
 
@@ -207,3 +214,54 @@ describe('filtersToQuery / isSameQuery', () => {
     expect(isSameQuery({}, { page: '2' })).toBe(false)
   })
 })
+
+describe('created_to defaults to today', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+    vi.mocked(getCourses).mockResolvedValue(PAGE_RESPONSE)
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 9, 23, 30))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('returns the local date as YYYY-MM-DD', () => {
+    expect(todayISO()).toBe('2026-10-09')
+  })
+
+  it('fills created_to with today when only created_from is set', async () => {
+    const courses = useCoursesStore()
+
+    await courses.setFilters({ created_from: '2026-10-08' })
+
+    expect(courses.filters).toMatchObject({ created_from: '2026-10-08', created_to: '2026-10-09' })
+    expect(getCourses).toHaveBeenLastCalledWith(expect.objectContaining({ created_from: '2026-10-08', created_to: '2026-10-09' }))
+  })
+
+  it('refills created_to with today when it is cleared while created_from is set', async () => {
+    const courses = useCoursesStore()
+    await courses.setFilters({ created_from: '2026-10-01', created_to: '2026-10-05' })
+
+    await courses.setFilters({ created_to: '' })
+
+    expect(courses.filters.created_to).toBe('2026-10-09')
+  })
+
+  it('keeps an explicit created_to and leaves both empty when created_from is empty', async () => {
+    const courses = useCoursesStore()
+
+    await courses.setFilters({ created_from: '2026-10-01', created_to: '2026-10-05' })
+    expect(courses.filters.created_to).toBe('2026-10-05')
+
+    await courses.setFilters({ created_from: '', created_to: '' })
+    expect(courses.filters).toMatchObject({ created_from: '', created_to: '' })
+  })
+
+  it('fills created_to with today for a URL with only created_from', () => {
+    expect(filtersFromQuery({ created_from: '2026-10-01' })).toMatchObject({ created_from: '2026-10-01', created_to: '2026-10-09' })
+  })
+})
+
