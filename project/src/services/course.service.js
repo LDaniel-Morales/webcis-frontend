@@ -14,3 +14,11 @@ export async function getCourses(params = {}) {
 export async function getCourse(code) {
   return apiGet(`/courses/${encodeURIComponent(code)}`)
 }
+
+export async function getLessons(code) {
+  return apiGet(`/courses/${encodeURIComponent(code)}/lessons`)
+}
+
+export async function getLesson(code, id) {
+  return apiGet(`/courses/${encodeURIComponent(code)}/lessons/${encodeURIComponent(id)}`)
+}

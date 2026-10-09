@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { apiGet } from '@/services/api.js'
-import { getCourse, getCourses } from '@/services/course.service.js'
+import { getCourse, getCourses, getLesson, getLessons } from '@/services/course.service.js'
 
 vi.mock('@/services/api.js', () => ({
   apiGet: vi.fn(),
@@ -26,5 +26,15 @@ describe('course service', () => {
 
     expect(apiGet).toHaveBeenCalledWith('/courses/LARAVEL-101')
     expect(apiGet).toHaveBeenCalledWith('/courses/A%20B%2FC')
+  })
+
+  it('lists the lessons of a course and reads one lesson, encoding the path params', async () => {
+    await getLessons('LARAVEL-101')
+    await getLesson('LARAVEL-101', 3)
+    await getLesson('A B', '7/8')
+
+    expect(apiGet).toHaveBeenCalledWith('/courses/LARAVEL-101/lessons')
+    expect(apiGet).toHaveBeenCalledWith('/courses/LARAVEL-101/lessons/3')
+    expect(apiGet).toHaveBeenCalledWith('/courses/A%20B/lessons/7%2F8')
   })
 })
