@@ -91,16 +91,23 @@ watch(() => route.params.code, (code) => code && load(code), { immediate: true }
           <li
             v-for="(lesson, index) in course.lessons"
             :key="lesson.id"
-            class="flex items-center gap-4 py-3"
             :class="index > 0 ? 'border-t border-[#f1f2f5]' : ''"
           >
-            <span class="flex size-9 flex-none items-center justify-center rounded-full bg-gris-interfaz font-display text-sm font-bold text-texto">
-              {{ lesson.order }}
-            </span>
-            <div class="min-w-0">
-              <p class="font-display text-[15px] font-semibold text-texto">{{ lesson.title }}</p>
-              <p v-if="lesson.short_title" class="font-display text-xs text-texto/60">{{ lesson.short_title }}</p>
-            </div>
+            <RouterLink
+              :to="`/app/courses/${course.code}/lessons/${lesson.id}`"
+              class="group -mx-3 flex items-center gap-4 rounded-xl px-3 py-3 transition hover:bg-[#f6f7f9]"
+            >
+              <span class="flex size-9 flex-none items-center justify-center rounded-full bg-gris-interfaz font-display text-sm font-bold text-texto">
+                {{ lesson.order }}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block font-display text-[15px] font-semibold text-texto group-hover:text-cobre-digital">{{ lesson.title }}</span>
+                <span v-if="lesson.short_title" class="block font-display text-xs text-texto/60">{{ lesson.short_title }}</span>
+              </span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="flex-none text-texto/40 group-hover:text-cobre-digital">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </RouterLink>
           </li>
         </ol>
         <p v-else class="mt-3 font-body text-sm text-texto/60">Este curso aún no tiene lecciones.</p>

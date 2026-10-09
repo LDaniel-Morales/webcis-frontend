@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import CourseCard from '@/components/app/courses/CourseCard.vue'
 import {
   filtersToQuery,
+  todayISO,
   isSameQuery,
   ORDER_OPTIONS,
   PER_PAGE_OPTIONS,
@@ -15,6 +16,7 @@ import {
 const SORT_LABELS = { title: 'Título', created_at: 'Fecha de creación', updated_at: 'Última actualización' }
 const ORDER_LABELS = { asc: 'Ascendente', desc: 'Descendente' }
 
+const today = todayISO()
 const route = useRoute()
 const router = useRouter()
 const courses = useCoursesStore()
@@ -155,7 +157,6 @@ const lastPage = computed(() => courses.meta?.last_page ?? 1)
             class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
             @change="courses.setFilters({ order: $event.target.value })"
           >
-            <option value="">Predeterminada</option>
             <option v-for="value in ORDER_OPTIONS" :key="value" :value="value">{{ ORDER_LABELS[value] }}</option>
           </select>
         </label>
@@ -165,7 +166,7 @@ const lastPage = computed(() => courses.meta?.last_page ?? 1)
           <input
             type="date"
             :value="courses.filters.created_from"
-            :max="courses.filters.created_to || undefined"
+            :max="courses.filters.created_to || today"
             class="h-11 rounded-[13px] bg-white px-3 text-[14px] font-normal text-texto outline-none"
             @change="courses.setFilters({ created_from: $event.target.value })"
           >
