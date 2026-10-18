@@ -5,6 +5,7 @@ import { registerEmailSchema  } from '@/schemas/validationSchema.js'
 import { useRouter } from 'vue-router'
 import { sendVerificationEmail } from '@/services/auth.service'
 import { userTypeFromEmail } from '@/utils/userType.js'
+import { authErrorMessage } from '@/utils/authErrors'
 
 const router = useRouter()
 const emit = defineEmits(['next'])
@@ -19,7 +20,7 @@ async function onSubmit(values) {
     await sendVerificationEmail({ email: values.email })
     emit('next', { email: values.email, userType: userTypeFromEmail(values.email) })
   } catch (err) {
-    serverError.value = err?.message || 'No se pudo enviar el correo.'
+    serverError.value = authErrorMessage(err, 'No se pudo enviar el correo.')
   } finally {
     loading.value = false
   }

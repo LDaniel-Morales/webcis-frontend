@@ -80,13 +80,14 @@ describe('LoginCard', () => {
     })
   })
 
-  it('shows the login error and does not navigate', async () => {
-    mocks.authLogin.mockRejectedValue({ message: 'Credenciales inválidas.' })
+  it('shows the translated login error and does not navigate', async () => {
+    mocks.authLogin.mockRejectedValue({ status: 401, message: 'Invalid credentials' })
     const wrapper = mountLoginCard()
 
     await submitCredentials(wrapper, 'alumno01', 'wrong-password')
 
-    expect(wrapper.text()).toContain('Credenciales inválidas.')
+    expect(wrapper.text()).toContain('Usuario o contraseña incorrectos.')
+    expect(wrapper.text()).not.toContain('Invalid credentials')
     expect(mocks.routerPush).not.toHaveBeenCalled()
   })
 })

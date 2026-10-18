@@ -188,28 +188,63 @@ describe('register flow', () => {
     expect(wrapper.emitted('registered')?.[0]).toEqual([{ id: 1 }])
   })
 
-  it('shows the backend error when the register token is invalid', async () => {
-    mocks.register.mockRejectedValue({ message: 'Token inválido.' })
+  it('explains that the email verification expired when the register token is rejected', async () => {
+    mocks.register.mockRejectedValue({ status: 401, message: 'Expired or invalid token' })
     const wrapper = mountRegisterForm()
 
     await completeRegisterForm(wrapper)
     await submitRegisterForm(wrapper)
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Token inválido.')
-    expect(mocks.register).toHaveBeenCalledWith({
-      email: 'ana@example.com',
-      username: 'ana_lopez',
-      password: 'Secret1!',
-      names: 'Ana',
-      surname: 'López',
-      second_surname: 'Pérez',
-      control_number: '12345678',
-      token: 'verify-token',
-      type: 0,
-      recaptcha_token: 'captcha-token',
-    })
+    expect(wrapper.text()).toContain(
+      'La verificación de tu correo expiró. Vuelve a registrarte para recibir un código nuevo.',
+    )
+    expect(wrapper.text()).not.toContain('Expired or invalid token')
     expect(wrapper.emitted('registered')).toBeUndefined()
+  })
+
+  it('shows the duplicate account error with its status code', async () => {
+    mocks.register.mockRejectedValue({ status: 500, message: 'Failed to create new user' })
+    const wrapper = mountRegisterForm()
+
+    await completeRegisterForm(wrapper)
+    await submitRegisterForm(wrapper)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain(
+      'Error 500 · No se pudo crear la cuenta. Es posible que el correo o el usuario ya estén registrados.',
+    )
+  })
+
+  it('translates the backend validation errors of the register form', async () => {
+    mocks.register.mockRejectedValue({
+      status: 422,
+      message: 'The second surname field must be a string.',
+      data: { errors: { second_surname: ['The second surname field must be a string.'] } },
+    })
+    const wrapper = mountRegisterForm()
+
+    await completeRegisterForm(wrapper)
+    await submitRegisterForm(wrapper)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('El campo segundo apellido debe ser texto.')
+  })
+
+  it('shows a translated error when the verification code is wrong', async () => {
+    mocks.confirmVerificationEmail.mockRejectedValue({ status: 401, message: 'Expired or invalid token' })
+    const wrapper = mount(RegisterInfo, {
+      props: {
+        email: 'ana@example.com',
+      },
+    })
+
+    await wrapper.get('input[name="verification_code"]').setValue('codigo-incorrecto')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('El código es incorrecto o ya expiró.')
+    expect(wrapper.emitted('continue')).toBeUndefined()
   })
 
   it('disables the submit button while the registration request is pending', async () => {

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 
 import { forgotPassword } from '@/services/auth.service'
+import { authErrorMessage } from '@/utils/authErrors'
 
 const emit = defineEmits(['continue'])
 
@@ -25,7 +26,7 @@ async function onSubmit() {
     await forgotPassword({ email: normalizedEmail })
     emit('continue', { email: normalizedEmail })
   } catch (err) {
-    errorMsg.value = err?.message || 'No se pudo enviar el código de recuperación.'
+    errorMsg.value = authErrorMessage(err, 'No se pudo enviar el código de recuperación.')
   } finally {
     loading.value = false
   }

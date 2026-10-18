@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 
 import { confirmVerificationEmail, sendVerificationEmail } from '@/services/auth.service'
+import { authErrorMessage } from '@/utils/authErrors'
 
 const props = defineProps({
   email: { type: String, default: '' },
@@ -56,7 +57,7 @@ async function onConfirmCode() {
       email: emailFromResponse(response),
     })
   } catch (err) {
-    serverError.value = err?.message || 'No se pudo confirmar el código.'
+    serverError.value = authErrorMessage(err, 'No se pudo confirmar el código.')
   } finally {
     isChecking.value = false
   }
@@ -77,7 +78,7 @@ async function onResend() {
     resendMessage.value = 'Te enviamos un nuevo código de verificación.'
     emit('resend')
   } catch (err) {
-    serverError.value = err?.message || 'No se pudo reenviar el código.'
+    serverError.value = authErrorMessage(err, 'No se pudo reenviar el código.')
   } finally {
     isResending.value = false
   }

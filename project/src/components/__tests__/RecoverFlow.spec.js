@@ -49,15 +49,15 @@ describe('recover flow', () => {
     ])
   })
 
-  it('step 1 shows the backend error and does not continue when the request fails', async () => {
-    mocks.forgotPassword.mockRejectedValue({ message: 'No existe una cuenta con ese correo.' })
+  it('step 1 shows the translated backend error and does not continue when the request fails', async () => {
+    mocks.forgotPassword.mockRejectedValue({ status: 500, message: 'Unexpected error occurred' })
     const wrapper = mount(RecoverInfo, { global })
 
     await wrapper.get('input[type="email"]').setValue('ana@example.com')
     await wrapper.get('form').trigger('submit')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('No existe una cuenta con ese correo.')
+    expect(wrapper.text()).toContain('Error 500 · Ocurrió un error inesperado.')
     expect(wrapper.emitted('continue')).toBeUndefined()
   })
 
@@ -149,7 +149,10 @@ describe('recover flow', () => {
   })
 
   it('step 3 keeps the user on the form when the backend rejects the reset', async () => {
-    mocks.resetPassword.mockRejectedValue({ message: 'Token inválido.' })
+    mocks.resetPassword.mockRejectedValue({
+      status: 500,
+      message: 'No se pudo actualizar la contraseña. Contacta a soporte.',
+    })
     const wrapper = mount(RecoverReset, {
       props: {
         email: 'ana@example.com',
@@ -164,7 +167,7 @@ describe('recover flow', () => {
     await wrapper.get('form').trigger('submit')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Token inválido.')
+    expect(wrapper.text()).toContain('Error 500 · No se pudo actualizar la contraseña.')
     expect(wrapper.emitted('continue')).toBeUndefined()
   })
 

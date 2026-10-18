@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import checkIcon from '@/assets/icons/checkIcon.png'
 import wrongIcon from '@/assets/icons/wrongIcon.png'
 import { confirmVerificationEmail } from '@/services/auth.service'
+import { authErrorMessage } from '@/utils/authErrors'
 import { userTypeFromEmail } from '@/utils/userType.js'
 
 const emit = defineEmits(['continue'])
@@ -54,7 +55,7 @@ async function onContinue() {
       userType: userTypeFromEmail(email),
     })
   } catch (err) {
-    serverError.value = err?.message || 'No se pudo confirmar el correo.'
+    serverError.value = authErrorMessage(err, 'No se pudo confirmar el correo.')
   } finally {
     isChecking.value = false
   }
