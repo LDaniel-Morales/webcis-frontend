@@ -29,7 +29,7 @@ describe('auth service', () => {
     vi.mocked(apiGet).mockResolvedValue(undefined)
     vi.mocked(apiPost).mockResolvedValue({ user: { id: 1 } })
 
-    await login({ email: 'ana@example.com', pass: 'secret', role: 'alumno' })
+    await login({ email: 'ana@example.com', pass: 'secret' })
 
     expect(apiGet).toHaveBeenCalledWith('/sanctum/csrf-cookie', {
       baseURL: backendBaseURL,
@@ -37,7 +37,6 @@ describe('auth service', () => {
     expect(apiPost).toHaveBeenCalledWith('/auth/login', {
       login: 'ana@example.com',
       password: 'secret',
-      role: 'alumno',
     })
     expect(apiGet.mock.invocationCallOrder[0]).toBeLessThan(apiPost.mock.invocationCallOrder[0])
   })

@@ -48,7 +48,14 @@ describe('LoginCard', () => {
     mocks.authLogin.mockResolvedValue({ user: { id: 1 } })
   })
 
-  it('submits an email with the default alumno role', async () => {
+  it('does not show a role selector', () => {
+    const wrapper = mountLoginCard()
+
+    expect(wrapper.text()).not.toMatch(/Alumno|Profesor|Egresado/)
+    expect(wrapper.findAll('button[type="button"]').map((button) => button.text())).toEqual(['Mostrar'])
+  })
+
+  it('submits an email without a role', async () => {
     const wrapper = mountLoginCard()
 
     await submitCredentials(wrapper, 'alumno@example.com', 'secret')
@@ -57,14 +64,12 @@ describe('LoginCard', () => {
       email: 'alumno@example.com',
       username: undefined,
       pass: 'secret',
-      role: 'alumno',
     })
     expect(mocks.routerPush).toHaveBeenCalledWith('/app')
   })
 
-  it('submits a username with the selected profesor role', async () => {
+  it('submits a username without a role', async () => {
     const wrapper = mountLoginCard()
-    await wrapper.get('button:nth-child(2)').trigger('click')
 
     await submitCredentials(wrapper, 'profesor01', 'secret')
 
@@ -72,7 +77,6 @@ describe('LoginCard', () => {
       email: undefined,
       username: 'profesor01',
       pass: 'secret',
-      role: 'profesor',
     })
   })
 

@@ -89,7 +89,7 @@ describe('auth store', () => {
     vi.mocked(getMe).mockResolvedValue({ user: { username: 'luis', type: 'Professor' } })
     const auth = useAuthStore()
 
-    await auth.login({ username: 'luis', pass: 'secret', role: 'profesor' })
+    await auth.login({ username: 'luis', pass: 'secret' })
 
     expect(getMe).toHaveBeenCalledOnce()
     expect(auth.user).toMatchObject({ username: 'luis', type: 'Professor' })
@@ -101,7 +101,7 @@ describe('auth store', () => {
     vi.mocked(getMe).mockRejectedValue({ status: 500 })
     const auth = useAuthStore()
 
-    await expect(auth.login({ email: 'ana@example.com', pass: 'secret', role: 'alumno' })).rejects.toMatchObject({
+    await expect(auth.login({ email: 'ana@example.com', pass: 'secret' })).rejects.toMatchObject({
       message: 'No se pudo verificar la sesión. Intenta de nuevo.',
     })
     expect(auth.isAuthenticated).toBe(false)
