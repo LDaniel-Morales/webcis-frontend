@@ -4,6 +4,7 @@ import { Form, Field, ErrorMessage } from 'vee-validate'
 import { registerFormSchema } from '@/schemas/validationSchema.js'
 import { RecaptchaV2, useRecaptcha } from 'vue3-recaptcha-v2'
 import { register } from '@/services/auth.service'
+import { authErrorMessage } from '@/utils/authErrors'
 
 const props = defineProps({
   email: { type: String, default: '' },
@@ -176,7 +177,9 @@ async function onSubmit(values) {
     })
     emit('registered', response)
   } catch (err) {
-    serverError.value = err?.message || 'No se pudo completar el registro.'
+    serverError.value = authErrorMessage(err, 'No se pudo completar el registro.', {
+      401: 'La verificación de tu correo expiró. Vuelve a registrarte para recibir un código nuevo.',
+    })
     resetCaptcha()
   } finally {
     isSubmitting.value = false

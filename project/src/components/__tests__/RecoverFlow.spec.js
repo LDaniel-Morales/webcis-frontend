@@ -49,15 +49,15 @@ describe('recover flow', () => {
     ])
   })
 
-  it('step 1 shows the backend error and does not continue when the request fails', async () => {
-    mocks.forgotPassword.mockRejectedValue({ message: 'No existe una cuenta con ese correo.' })
+  it('step 1 shows the translated backend error and does not continue when the request fails', async () => {
+    mocks.forgotPassword.mockRejectedValue({ status: 500, message: 'Unexpected error occurred' })
     const wrapper = mount(RecoverInfo, { global })
 
     await wrapper.get('input[type="email"]').setValue('ana@example.com')
     await wrapper.get('form').trigger('submit')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('No existe una cuenta con ese correo.')
+    expect(wrapper.text()).toContain('Error 500 · Ocurrió un error inesperado.')
     expect(wrapper.emitted('continue')).toBeUndefined()
   })
 
@@ -99,6 +99,32 @@ describe('recover flow', () => {
     expect(wrapper.emitted('continue')).toBeUndefined()
   })
 
+  it('step 3 uses the same five password requirements as the register form', async () => {
+    const wrapper = mount(RecoverReset, {
+      props: {
+        email: 'ana@example.com',
+        token: 'reset-token',
+      },
+      global,
+    })
+    const [passwordInput, confirmPasswordInput] = wrapper.findAll('input[type="password"]')
+
+    expect(wrapper.findAll('li').map((item) => item.text())).toEqual([
+      'Mínimo 8 caracteres',
+      'Una mayúscula',
+      'Una minúscula',
+      'Un número',
+      'Un símbolo',
+    ])
+
+    await passwordInput.setValue('SECRET12')
+    await confirmPasswordInput.setValue('SECRET12')
+
+    expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.findAll('li[data-met="false"]').map((item) => item.text())).toEqual(['Una minúscula', 'Un símbolo'])
+    expect(wrapper.text()).toContain('Media')
+  })
+
   it('step 3 resets the password with email, password and reset token', async () => {
     const wrapper = mount(RecoverReset, {
       props: {
@@ -123,7 +149,10 @@ describe('recover flow', () => {
   })
 
   it('step 3 keeps the user on the form when the backend rejects the reset', async () => {
-    mocks.resetPassword.mockRejectedValue({ message: 'Token inválido.' })
+    mocks.resetPassword.mockRejectedValue({
+      status: 500,
+      message: 'No se pudo actualizar la contraseña. Contacta a soporte.',
+    })
     const wrapper = mount(RecoverReset, {
       props: {
         email: 'ana@example.com',
@@ -138,7 +167,7 @@ describe('recover flow', () => {
     await wrapper.get('form').trigger('submit')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Token inválido.')
+    expect(wrapper.text()).toContain('Error 500 · No se pudo actualizar la contraseña.')
     expect(wrapper.emitted('continue')).toBeUndefined()
   })
 

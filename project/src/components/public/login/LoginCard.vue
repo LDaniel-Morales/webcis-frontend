@@ -3,6 +3,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { authErrorMessage } from '@/utils/authErrors'
 
 const identifier = ref('') // correo o username
 const pass = ref('')
@@ -40,7 +41,7 @@ async function onSubmit() {
     await auth.login(toPayload())
     await router.push('/app')
   }catch(err) {
-    errorMsg.value = err?.message || 'No se pudo iniciar sesion.'
+    errorMsg.value = authErrorMessage(err, 'No se pudo iniciar sesión.')
   } finally {
     loading.value = false
   }
