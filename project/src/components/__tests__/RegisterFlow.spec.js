@@ -63,6 +63,7 @@ function mountRegisterForm() {
 async function completeRegisterForm(wrapper) {
   await wrapper.get('input[name="names"]').setValue('Ana')
   await wrapper.get('input[name="surname"]').setValue('López')
+  await wrapper.get('input[name="second_surname"]').setValue('Pérez')
   await wrapper.get('input[name="username"]').setValue('ana_lopez')
   await wrapper.get('input[name="control_number"]').setValue('12345678')
   await wrapper.get('input[name="password"]').setValue('Secret1!')
@@ -78,7 +79,7 @@ async function submitRegisterForm(wrapper) {
     password_confirm: 'Secret1!',
     names: 'Ana',
     surname: 'López',
-    second_surname: '',
+    second_surname: 'Pérez',
     control_number: '12345678',
   })
 }
@@ -178,7 +179,7 @@ describe('register flow', () => {
       password: 'Secret1!',
       names: 'Ana',
       surname: 'López',
-      second_surname: '',
+      second_surname: 'Pérez',
       control_number: '12345678',
       token: 'verify-token',
       type: 0,
@@ -202,7 +203,7 @@ describe('register flow', () => {
       password: 'Secret1!',
       names: 'Ana',
       surname: 'López',
-      second_surname: '',
+      second_surname: 'Pérez',
       control_number: '12345678',
       token: 'verify-token',
       type: 0,
