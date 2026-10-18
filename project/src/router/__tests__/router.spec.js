@@ -48,10 +48,34 @@ describe('auth navigation guard', () => {
   it('redirects authenticated users away from guest routes', async () => {
     const auth = useAuthStore()
     auth.setUser({ username: 'ana', type: 'Student' })
+    auth.sessionChecked = true
 
     await expect(authNavigationGuard(routeWithMeta({ guest: true }))).resolves.toEqual({
       path: '/app',
     })
+    expect(getMe).not.toHaveBeenCalled()
+  })
+
+  it('verifies the session on first entry to a guest route and sends a logged-in user to /app', async () => {
+    vi.mocked(getMe).mockResolvedValue({ user: { username: 'ana', type: 'Student' } })
+
+    await expect(authNavigationGuard(routeWithMeta({ guest: true }))).resolves.toEqual({
+      path: '/app',
+    })
+    expect(getMe).toHaveBeenCalledOnce()
+  })
+
+  it('lets anonymous users into guest routes and checks the session only once', async () => {
+    vi.mocked(getMe).mockRejectedValue({ status: 401 })
+
+    await expect(authNavigationGuard(routeWithMeta({ guest: true }))).resolves.toBe(true)
+    await expect(authNavigationGuard(routeWithMeta({ guest: true }))).resolves.toBe(true)
+    expect(getMe).toHaveBeenCalledOnce()
+  })
+
+  it('does not check the session on public routes', async () => {
+    await expect(authNavigationGuard(routeWithMeta())).resolves.toBe(true)
+    expect(getMe).not.toHaveBeenCalled()
   })
 
   it('keeps non-admin users out of admin routes', async () => {
