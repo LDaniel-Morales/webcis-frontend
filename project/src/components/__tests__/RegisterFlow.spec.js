@@ -121,6 +121,28 @@ describe('register flow', () => {
     expect(wrapper.find('[data-test="register-success"]').exists()).toBe(true)
   })
 
+  it('accepts the 32-character alphanumeric verification string from the email', async () => {
+    const wrapper = mount(RegisterInfo, {
+      props: {
+        email: 'ana@example.com',
+      },
+    })
+    const verificationString = 'tSj0hIq9ZxB2mK7pLw4RvN8cYd3FgH1e'
+    const input = wrapper.get('input[name="verification_code"]')
+
+    expect(input.attributes('inputmode')).toBe('text')
+
+    await input.setValue(verificationString)
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(mocks.confirmVerificationEmail).toHaveBeenCalledWith({
+      email: 'ana@example.com',
+      code: verificationString,
+      token: verificationString,
+    })
+  })
+
   it('confirms the email code and continues the register flow', async () => {
     const wrapper = mount(RegisterInfo, {
       props: {

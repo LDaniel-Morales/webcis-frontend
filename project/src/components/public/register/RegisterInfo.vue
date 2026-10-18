@@ -114,11 +114,13 @@ function onBack() {
         v-model="verificationCode"
         name="verification_code"
         type="text"
-        inputmode="numeric"
+        inputmode="text"
         autocomplete="one-time-code"
+        autocapitalize="off"
+        spellcheck="false"
         placeholder="Ingresa el código"
         :disabled="isBusy"
-        class="w-full rounded-lg border border-white/20 bg-black/20 px-4 py-3 text-center text-lg font-semibold tracking-[0.25em] text-white placeholder:text-sm placeholder:font-normal placeholder:tracking-normal placeholder:text-white/50 outline-none focus:border-white/70 disabled:opacity-60"
+        class="w-full rounded-lg border border-white/20 bg-black/20 px-4 py-3 text-center font-mono text-sm font-semibold text-white placeholder:font-sans placeholder:font-normal placeholder:text-white/50 outline-none focus:border-white/70 disabled:opacity-60"
       />
 
       <p v-if="serverError" class="text-center text-sm text-red-300">
