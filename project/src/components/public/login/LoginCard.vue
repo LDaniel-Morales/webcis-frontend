@@ -4,14 +4,6 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-const role = [
-  { key: 'alumno', label: 'Alumno' },
-  { key: 'profesor', label: 'Profesor' },
-  { key: 'egresado', label: 'Egresado' },
-]
-
-const selectedRole = ref('alumno')
-
 const identifier = ref('') // correo o username
 const pass = ref('')
 const showPass = ref(false)
@@ -32,7 +24,6 @@ function toPayload() {
     email: isEmail ? value : undefined,
     username: !isEmail ? value : undefined,
     pass: pass.value,
-    role: selectedRole.value
   }
 }
 
@@ -61,22 +52,8 @@ async function onSubmit() {
 <template>
   <div class="flex flex-col gap-3 ">
     <div class="rounded-2xl border border-white/15 bg-black/80 backdrop-blur-md p-6">
-      <!-- Tabs -->
-      <div class="grid grid-cols-3 overflow-hidden rounded-lg border border-white/15">
-        <button
-          v-for="r in role"
-          :key="r.key"
-          type="button"
-          class="py-2 text-sm font-medium"
-          :class="selectedRole === r.key ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/80 hover:bg-white/10'"
-          @click="selectedRole = r.key"
-        >
-          {{ r.label }}
-        </button>
-      </div>
-
       <!-- Title -->
-      <h1 class="mt-5 text-4xl font-semibold text-white/70 leading-tight text-center">
+      <h1 class="text-4xl font-semibold text-white/70 leading-tight text-center">
         Inicio de sesión
       </h1>
       <div class="mt-2 h-1 w-full bg-blue-600/80"></div>

@@ -34,21 +34,13 @@ function toPayload(value, key) {
   return { [key]: value }
 }
 
-export async function login({ email, username, pass, password, role }) {
+export async function login({ email, username, pass, password }) {
   const resolvedPassword = password ?? pass
 
   if (!resolvedPassword) {
     throw {
       status: 0,
       message: 'Falta el campo Contraseña.',
-      data: null,
-      isNetworkError: false,
-    }
-  }
-  if (!role) {
-    throw {
-      status: 0,
-      message: 'Falta el campo "rol".',
       data: null,
       isNetworkError: false,
     }
@@ -70,11 +62,6 @@ export async function login({ email, username, pass, password, role }) {
     // backend lo detecta con filter_var().
     login: identifier,
     password: resolvedPassword,
-    // `role` no es parte del contrato de /auth/login todavía (el backend no
-    // lo valida ni lo usa). Se sigue enviando porque el selector de rol del
-    // LoginCard está pensado para usarse cuando el backend lo soporte; por
-    // ahora Laravel simplemente lo ignora.
-    role,
   }
 
   return authPost('/login', payload)

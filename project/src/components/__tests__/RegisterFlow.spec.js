@@ -63,6 +63,7 @@ function mountRegisterForm() {
 async function completeRegisterForm(wrapper) {
   await wrapper.get('input[name="names"]').setValue('Ana')
   await wrapper.get('input[name="surname"]').setValue('López')
+  await wrapper.get('input[name="second_surname"]').setValue('Pérez')
   await wrapper.get('input[name="username"]').setValue('ana_lopez')
   await wrapper.get('input[name="control_number"]').setValue('12345678')
   await wrapper.get('input[name="password"]').setValue('Secret1!')
@@ -78,7 +79,7 @@ async function submitRegisterForm(wrapper) {
     password_confirm: 'Secret1!',
     names: 'Ana',
     surname: 'López',
-    second_surname: '',
+    second_surname: 'Pérez',
     control_number: '12345678',
   })
 }
@@ -121,6 +122,28 @@ describe('register flow', () => {
     expect(wrapper.find('[data-test="register-success"]').exists()).toBe(true)
   })
 
+  it('accepts the 32-character alphanumeric verification string from the email', async () => {
+    const wrapper = mount(RegisterInfo, {
+      props: {
+        email: 'ana@example.com',
+      },
+    })
+    const verificationString = 'tSj0hIq9ZxB2mK7pLw4RvN8cYd3FgH1e'
+    const input = wrapper.get('input[name="verification_code"]')
+
+    expect(input.attributes('inputmode')).toBe('text')
+
+    await input.setValue(verificationString)
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(mocks.confirmVerificationEmail).toHaveBeenCalledWith({
+      email: 'ana@example.com',
+      code: verificationString,
+      token: verificationString,
+    })
+  })
+
   it('confirms the email code and continues the register flow', async () => {
     const wrapper = mount(RegisterInfo, {
       props: {
@@ -156,7 +179,7 @@ describe('register flow', () => {
       password: 'Secret1!',
       names: 'Ana',
       surname: 'López',
-      second_surname: '',
+      second_surname: 'Pérez',
       control_number: '12345678',
       token: 'verify-token',
       type: 0,
@@ -180,7 +203,7 @@ describe('register flow', () => {
       password: 'Secret1!',
       names: 'Ana',
       surname: 'López',
-      second_surname: '',
+      second_surname: 'Pérez',
       control_number: '12345678',
       token: 'verify-token',
       type: 0,

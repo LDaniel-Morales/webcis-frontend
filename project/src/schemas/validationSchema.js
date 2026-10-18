@@ -34,8 +34,8 @@ export const registerFormSchema = toTypedSchema(
 
     second_surname: yup
       .string()
-      .nullable()
-      .transform((v) => (v === '' ? null : v))
+      .required('El segundo apellido es obligatorio')
+      .min(2, 'Mínimo 2 caracteres')
       .max(40, 'Máximo 40 caracteres'),
 
     // Cuenta
@@ -46,7 +46,12 @@ export const registerFormSchema = toTypedSchema(
       .max(40, 'Máximo 40 caracteres')
       .matches(/^[a-zA-Z0-9._-]+$/, 'Solo letras, números, punto, guion y guion bajo'),
 
-    control_number: yup.string().max(10, 'Máximo 10 caracteres'),
+    control_number: yup
+      .string()
+      .trim()
+      .required('El número de control es obligatorio')
+      .min(8, 'Mínimo 8 caracteres')
+      .max(10, 'Máximo 10 caracteres'),
 
     password: yup
       .string()
