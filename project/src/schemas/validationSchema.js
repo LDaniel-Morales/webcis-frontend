@@ -1,21 +1,13 @@
 import * as yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'
 
+import { isStrongPassword, PASSWORD_RULE_MESSAGE } from '@/utils/password'
+
 export const registerEmailSchema = toTypedSchema(
   yup.object({
     email: yup.string().required('El correo es obligatorio').email('Ingresa un correo válido'),
   }),
 )
-
-/**
- * Reglas de contraseña (segura)
- * - mínimo 8
- * - 1 mayúscula
- * - 1 minúscula
- * - 1 número
- * - 1 símbolo
- */
-const passwordRules = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/
 
 export const registerFormSchema = toTypedSchema(
   yup.object({
@@ -56,7 +48,7 @@ export const registerFormSchema = toTypedSchema(
     password: yup
       .string()
       .required('La contraseña es obligatoria')
-      .matches(passwordRules, 'Mín. 8 caracteres, mayúscula, minúscula, número y símbolo'),
+      .test('strong-password', PASSWORD_RULE_MESSAGE, (value) => isStrongPassword(value ?? '')),
 
     password_confirm: yup
       .string()

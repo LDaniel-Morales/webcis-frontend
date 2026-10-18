@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 
 import { resetPassword } from '@/services/auth.service'
+import { isStrongPassword, passwordChecks } from '@/utils/password'
 
 const props = defineProps({
   email: { type: String, required: true },
@@ -17,60 +18,28 @@ const showConfirmPassword = ref(false)
 const loading = ref(false)
 const errorMsg = ref('')
 
-const hasMinLength = computed(() => password.value.length >= 8)
-const hasUpperCase = computed(() => /[A-Z]/.test(password.value))
-const hasNumberOrSymbol = computed(() => /[0-9!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]/.test(password.value))
+const checks = computed(() => passwordChecks(password.value))
+const strength = computed(() => checks.value.filter((check) => check.met).length)
 
 const passwordsMatch = computed(() => {
   if (!confirmPassword.value) return true
   return password.value === confirmPassword.value
 })
 
-const allValid = computed(() => {
-  return hasMinLength.value &&
-    hasUpperCase.value &&
-    hasNumberOrSymbol.value &&
-    password.value === confirmPassword.value &&
-    password.value.length > 0 &&
-    confirmPassword.value.length > 0
-})
+const allValid = computed(
+  () => isStrongPassword(password.value) && confirmPassword.value.length > 0 && password.value === confirmPassword.value,
+)
 
-const strength = computed(() => {
-  let score = 0
-  if (hasMinLength.value) score++
-  if (hasUpperCase.value) score++
-  if (hasNumberOrSymbol.value) score++
-  return score
-})
+const STRENGTH_LEVELS = {
+  0: { bar: 'w-0', color: 'bg-white/10', text: '', textColor: 'text-white/70' },
+  1: { bar: 'w-1/5', color: 'bg-red-500', text: 'Débil', textColor: 'text-red-400' },
+  2: { bar: 'w-2/5', color: 'bg-red-500', text: 'Débil', textColor: 'text-red-400' },
+  3: { bar: 'w-3/5', color: 'bg-yellow-500', text: 'Media', textColor: 'text-yellow-400' },
+  4: { bar: 'w-4/5', color: 'bg-yellow-500', text: 'Media', textColor: 'text-yellow-400' },
+  5: { bar: 'w-full', color: 'bg-green-500', text: 'Contraseña segura', textColor: 'text-green-400' },
+}
 
-const strengthColor = computed(() => {
-  if (strength.value === 1) return 'bg-red-500'
-  if (strength.value === 2) return 'bg-yellow-500'
-  if (strength.value === 3) return 'bg-green-500'
-  return 'bg-white/10'
-})
-
-
-const strengthWidth = computed(() => {
-  if (strength.value === 0) return '0%'
-  if (strength.value === 1) return '33%'
-  if (strength.value === 2) return '66%'
-  return '100%'
-})
-
-const strengthText = computed(() => {
-  if (strength.value === 0) return ''
-  if (strength.value === 1) return 'Débil'
-  if (strength.value === 2) return 'Media'
-  return 'Contraseña segura'
-})
-
-const strengthTextColor = computed(() => {
-  if (strength.value === 1) return 'text-red-400'
-  if (strength.value === 2) return 'text-yellow-400'
-  if (strength.value === 3) return 'text-green-400'
-  return 'text-white/70'
-})
+const level = computed(() => STRENGTH_LEVELS[strength.value])
 
 async function onSubmit() {
   errorMsg.value = ''
@@ -183,49 +152,25 @@ async function onSubmit() {
         <div v-if="password" class="space-y-2">
           <div class="flex items-center justify-between text-xs">
             <span class="text-white/70">Seguridad:</span>
-            <span :class="strengthTextColor" class="font-semibold">{{ strengthText }}</span>
+            <span :class="level.textColor" class="font-semibold">{{ level.text }}</span>
           </div>
 
           <div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-            <div
-              class="h-full rounded-full transition-all duration-300"
-              :class="strengthColor"
-              :style="{ width: strengthWidth }">
-            </div>
+            <div class="h-full rounded-full transition-all duration-300" :class="[level.bar, level.color]" />
           </div>
         </div>
 
-        <div class="space-y-2 pt-2">
-          <div class="flex items-center gap-2 text-sm">
-            <svg v-if="hasMinLength" class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <ul class="space-y-2 pt-2">
+          <li v-for="check in checks" :key="check.key" class="flex items-center gap-2 text-sm" :data-met="check.met">
+            <svg v-if="check.met" class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
             <svg v-else class="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
-            <span :class="hasMinLength ? 'text-white/80' : 'text-white/40'">Mínimo 8 caracteres</span>
-          </div>
-
-          <div class="flex items-center gap-2 text-sm">
-            <svg v-if="hasUpperCase" class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            <svg v-else class="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-            <span :class="hasUpperCase ? 'text-white/80' : 'text-white/40'">Una mayúscula</span>
-          </div>
-
-          <div class="flex items-center gap-2 text-sm">
-            <svg v-if="hasNumberOrSymbol" class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            <svg v-else class="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-            <span :class="hasNumberOrSymbol ? 'text-white/80' : 'text-white/40'">Un número o símbolo</span>
-          </div>
-        </div>
+            <span :class="check.met ? 'text-white/80' : 'text-white/40'">{{ check.label }}</span>
+          </li>
+        </ul>
 
         <p v-if="errorMsg" class="text-sm text-red-300 text-center">
           {{ errorMsg }}

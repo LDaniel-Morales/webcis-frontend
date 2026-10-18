@@ -40,4 +40,10 @@ describe('register form schema', () => {
     })
     expect(await registerErrors({ control_number: '1234567890' })).toEqual({})
   })
+
+  it('applies the shared password rule', async () => {
+    expect(await registerErrors({ password: 'SECRET12', password_confirm: 'SECRET12' })).toEqual({
+      password: 'Mín. 8 caracteres, mayúscula, minúscula, número y símbolo',
+    })
+  })
 })

@@ -99,6 +99,32 @@ describe('recover flow', () => {
     expect(wrapper.emitted('continue')).toBeUndefined()
   })
 
+  it('step 3 uses the same five password requirements as the register form', async () => {
+    const wrapper = mount(RecoverReset, {
+      props: {
+        email: 'ana@example.com',
+        token: 'reset-token',
+      },
+      global,
+    })
+    const [passwordInput, confirmPasswordInput] = wrapper.findAll('input[type="password"]')
+
+    expect(wrapper.findAll('li').map((item) => item.text())).toEqual([
+      'Mínimo 8 caracteres',
+      'Una mayúscula',
+      'Una minúscula',
+      'Un número',
+      'Un símbolo',
+    ])
+
+    await passwordInput.setValue('SECRET12')
+    await confirmPasswordInput.setValue('SECRET12')
+
+    expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.findAll('li[data-met="false"]').map((item) => item.text())).toEqual(['Una minúscula', 'Un símbolo'])
+    expect(wrapper.text()).toContain('Media')
+  })
+
   it('step 3 resets the password with email, password and reset token', async () => {
     const wrapper = mount(RecoverReset, {
       props: {
