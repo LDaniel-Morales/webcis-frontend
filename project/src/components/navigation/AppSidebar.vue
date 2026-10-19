@@ -11,11 +11,26 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  mobile: {
+    type: Boolean,
+    default: false,
+  },
+  open: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-defineEmits(['toggle'])
+defineEmits(['toggle', 'close'])
 
 const toggleLabel = computed(() => (props.collapsed ? 'Expandir menú' : 'Colapsar menú'))
+
+const asideClass = computed(() => {
+  if (props.mobile) {
+    return ['fixed inset-y-0 left-0 z-50 w-[248px] bg-sidebar transition-transform duration-200 ease-out', props.open ? 'translate-x-0' : '-translate-x-full']
+  }
+  return ['bg-sidebar/55 transition-[width] duration-200 ease-out', props.collapsed ? 'w-[76px]' : 'w-[248px]']
+})
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -72,10 +87,24 @@ function iconStroke(path) {
 
 <template>
   <aside
-    class="flex shrink-0 flex-col overflow-x-hidden border-r border-white/8 bg-sidebar/55 py-4 transition-[width] duration-200 ease-out"
-    :class="collapsed ? 'w-[76px]' : 'w-[248px]'"
+    class="flex shrink-0 flex-col overflow-x-hidden border-r border-white/8 py-4"
+    :class="asideClass"
+    :inert="mobile && !open ? true : undefined"
   >
     <button
+      v-if="mobile"
+      type="button"
+      class="mx-2 mb-1 flex items-center self-end rounded-xl px-4 py-2 text-white/60 hover:bg-white/5 hover:text-white"
+      aria-label="Cerrar menú"
+      title="Cerrar menú"
+      @click="$emit('close')"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6 6 18" />
+      </svg>
+    </button>
+    <button
+      v-else
       type="button"
       class="mx-2 mb-1 flex items-center rounded-xl px-4 py-2 text-white/60 hover:bg-white/5 hover:text-white"
       :class="collapsed ? 'self-start' : 'self-end'"
