@@ -1,31 +1,10 @@
 <script setup>
 import logo from '@/assets/images/Logo.png'
 import AppUserMenu from '@/components/navigation/AppUserMenu.vue'
-
-defineProps({
-  menuOpen: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-defineEmits(['open-menu'])
 </script>
 
 <template>
   <header class="flex h-[74px] items-center gap-6 border-b border-white/8 bg-azul-nav px-6">
-    <button
-      type="button"
-      class="flex size-11 flex-none items-center justify-center rounded-xl text-white hover:bg-white/10 md:hidden"
-      aria-label="Abrir menú"
-      :aria-expanded="menuOpen"
-      @click="$emit('open-menu')"
-    >
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M4 7h16M4 12h16M4 17h16" />
-      </svg>
-    </button>
-
     <RouterLink to="/app" aria-label="Ir al inicio">
       <img :src="logo" alt="WebCIS" width="1077" height="719" class="h-18 w-auto" >
     </RouterLink>

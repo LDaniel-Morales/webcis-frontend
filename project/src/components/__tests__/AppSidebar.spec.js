@@ -73,20 +73,7 @@ describe('AppSidebar', () => {
     expect(expandedLinks.some((link) => link.attributes('title'))).toBe(false)
   })
 
-  it('works as a drawer on mobile with a close button', async () => {
-    const closed = mountSidebar({ mobile: true, open: false })
-
-    expect(closed.classes()).toEqual(expect.arrayContaining(['fixed', 'w-[248px]', '-translate-x-full']))
-    expect(closed.attributes('inert')).toBeDefined()
-
-    const opened = mountSidebar({ mobile: true, open: true, collapsed: false })
-
-    expect(opened.classes()).toContain('translate-x-0')
-    expect(opened.attributes('inert')).toBeUndefined()
-    expect(opened.find('button[aria-label="Colapsar menú"]').exists()).toBe(false)
-    expect(opened.text()).toContain('Inicio')
-
-    await opened.get('button[aria-label="Cerrar menú"]').trigger('click')
-    expect(opened.emitted('close')).toHaveLength(1)
+  it('only shows on desktop', () => {
+    expect(mountSidebar().classes()).toEqual(expect.arrayContaining(['hidden', 'md:flex']))
   })
 })
