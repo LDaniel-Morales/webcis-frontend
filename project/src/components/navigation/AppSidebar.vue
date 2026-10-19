@@ -72,12 +72,13 @@ function iconStroke(path) {
 
 <template>
   <aside
-    class="flex shrink-0 flex-col border-r border-white/8 bg-sidebar/55 py-4"
+    class="flex shrink-0 flex-col overflow-x-hidden border-r border-white/8 bg-sidebar/55 py-4 transition-[width] duration-200 ease-out"
     :class="collapsed ? 'w-[76px]' : 'w-[248px]'"
   >
     <button
       type="button"
-      class="mx-2 mb-1 flex items-center self-start rounded-xl px-4 py-2 text-white/60 hover:bg-white/5 hover:text-white"
+      class="mx-2 mb-1 flex items-center rounded-xl px-4 py-2 text-white/60 hover:bg-white/5 hover:text-white"
+      :class="collapsed ? 'self-start' : 'self-end'"
       :aria-label="toggleLabel"
       :aria-expanded="!collapsed"
       :title="toggleLabel"
@@ -96,6 +97,8 @@ function iconStroke(path) {
       :to="item.to"
       class="relative mx-2 my-0.5 flex items-center gap-3 rounded-xl px-4 py-3 font-display text-sm font-medium text-white/80 hover:bg-white/5"
       :class="{ 'bg-acento/15 text-white': isActive(item.to) }"
+      :title="collapsed ? item.label : undefined"
+      :aria-label="collapsed ? item.label : undefined"
     >
       <span
         class="absolute inset-y-2 -left-2 w-1 rounded-r-sm bg-acento"
@@ -105,7 +108,7 @@ function iconStroke(path) {
         <ellipse v-if="item.ellipse" :cx="item.ellipse.cx" :cy="item.ellipse.cy" :rx="item.ellipse.rx" :ry="item.ellipse.ry" />
         <path v-for="d in item.paths" :key="d" :d="d" />
       </svg>
-      <span v-if="!collapsed">{{ item.label }}</span>
+      <span v-if="!collapsed" class="whitespace-nowrap">{{ item.label }}</span>
     </RouterLink>
 
     <div class="mt-auto">
@@ -113,6 +116,8 @@ function iconStroke(path) {
         to="/app/profile"
         class="relative mx-2 my-0.5 flex items-center gap-3 rounded-xl px-4 py-3 font-display text-sm font-medium text-white/80 hover:bg-white/5"
         :class="{ 'bg-acento/15 text-white': isActive('/app/profile') }"
+        :title="collapsed ? 'Mi perfil' : undefined"
+        :aria-label="collapsed ? 'Mi perfil' : undefined"
       >
         <span
           class="absolute inset-y-2 -left-2 w-1 rounded-r-sm bg-acento"
@@ -122,10 +127,10 @@ function iconStroke(path) {
           <circle cx="12" cy="8.5" r="3.5" />
           <path d="M5 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5" />
         </svg>
-        <span v-if="!collapsed">Mi perfil</span>
+        <span v-if="!collapsed" class="whitespace-nowrap">Mi perfil</span>
       </RouterLink>
 
-      <div v-if="!collapsed" class="mx-4 mt-3 rounded-2xl border border-acento/25 bg-acento/10 p-4">
+      <div v-if="!collapsed" class="mx-4 mt-3 min-w-[216px] rounded-2xl border border-acento/25 bg-acento/10 p-4">
         <p class="mb-2 font-display text-xs font-semibold text-white">Progreso promedio</p>
         <ProgressBar
           :percent="hasProgress ? dashboard.progress : 0"

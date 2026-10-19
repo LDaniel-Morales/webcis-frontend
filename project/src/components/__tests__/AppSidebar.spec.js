@@ -50,4 +50,26 @@ describe('AppSidebar', () => {
     expect(wrapper.text()).not.toContain('Inicio')
     expect(wrapper.text()).not.toContain('Progreso promedio')
   })
+
+  it('puts the toggle on the right when expanded and in the icon column when collapsed', () => {
+    expect(mountSidebar().get('button').classes()).toContain('self-end')
+    expect(mountSidebar({ collapsed: true }).get('button').classes()).toContain('self-start')
+  })
+
+  it('names every icon with a tooltip only while collapsed', () => {
+    const collapsedLinks = mountSidebar({ collapsed: true }).findAll('a')
+    const expandedLinks = mountSidebar().findAll('a')
+
+    expect(collapsedLinks.map((link) => link.attributes('title'))).toEqual([
+      'Inicio',
+      'Cursos',
+      'Repositorio',
+      'Crear contenido',
+      'Mi perfil',
+    ])
+    expect(collapsedLinks.map((link) => link.attributes('aria-label'))).toEqual(
+      collapsedLinks.map((link) => link.attributes('title')),
+    )
+    expect(expandedLinks.some((link) => link.attributes('title'))).toBe(false)
+  })
 })
