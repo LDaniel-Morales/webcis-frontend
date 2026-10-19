@@ -41,6 +41,13 @@ describe('AppLayout', () => {
     expect(wrapper.findComponent({ name: 'AppBottomNav' }).exists()).toBe(true)
   })
 
+  it('fits the visible viewport height and uses smaller margins on mobile', () => {
+    const wrapper = mountLayout()
+
+    expect(wrapper.classes()).toContain('h-dvh')
+    expect(wrapper.get('main').classes()).toEqual(expect.arrayContaining(['px-4', 'py-6', 'md:px-10', 'md:py-8']))
+  })
+
   it('starts with the sidebar expanded and toggles it', async () => {
     const wrapper = mountLayout()
     const sidebar = wrapper.get('aside')
