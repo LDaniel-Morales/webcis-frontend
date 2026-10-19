@@ -6,14 +6,16 @@ import ProgressBar from '@/components/ui/ProgressBar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
 
-// `collapsed` deja el layout listo para un futuro modo "rail compacto";
-// hoy no se renderiza ningún control para activarlo (sidebar fija únicamente).
-defineProps({
+const props = defineProps({
   collapsed: {
     type: Boolean,
     default: false,
   },
 })
+
+defineEmits(['toggle'])
+
+const toggleLabel = computed(() => (props.collapsed ? 'Expandir menú' : 'Colapsar menú'))
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -73,9 +75,20 @@ function iconStroke(path) {
     class="flex shrink-0 flex-col border-r border-white/8 bg-sidebar/55 py-4"
     :class="collapsed ? 'w-[76px]' : 'w-[248px]'"
   >
-    <p class="px-4 pb-2 font-body text-[11px] font-semibold uppercase tracking-wider text-white/40">
-      Plataforma
-    </p>
+    <button
+      type="button"
+      class="mx-2 mb-1 flex items-center self-start rounded-xl px-4 py-2 text-white/60 hover:bg-white/5 hover:text-white"
+      :aria-label="toggleLabel"
+      :aria-expanded="!collapsed"
+      :title="toggleLabel"
+      @click="$emit('toggle')"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M9 3v18" />
+        <path :d="collapsed ? 'm14 9 3 3-3 3' : 'm16 15-3-3 3-3'" />
+      </svg>
+    </button>
 
     <RouterLink
       v-for="item in navItems"
