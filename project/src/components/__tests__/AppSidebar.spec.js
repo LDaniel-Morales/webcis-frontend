@@ -72,4 +72,8 @@ describe('AppSidebar', () => {
     )
     expect(expandedLinks.some((link) => link.attributes('title'))).toBe(false)
   })
+
+  it('only shows on desktop', () => {
+    expect(mountSidebar().classes()).toEqual(expect.arrayContaining(['hidden', 'md:flex']))
+  })
 })

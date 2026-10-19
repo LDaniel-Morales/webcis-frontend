@@ -9,20 +9,20 @@ const SidebarStub = {
   template: '<aside :data-collapsed="collapsed" @click="$emit(\'toggle\')" />',
 }
 
-function mountLayout() {
-  return mount(AppLayout, {
-    global: {
-      stubs: { AppSidebar: SidebarStub, AppTopbar: true, RouterView: true },
-    },
-  })
-}
-
 function memoryStorage() {
   const items = new Map()
   return {
     getItem: (key) => items.get(key) ?? null,
     setItem: (key, value) => items.set(key, String(value)),
   }
+}
+
+function mountLayout() {
+  return mount(AppLayout, {
+    global: {
+      stubs: { AppSidebar: SidebarStub, AppTopbar: true, AppBottomNav: true, RouterView: true },
+    },
+  })
 }
 
 describe('AppLayout', () => {
@@ -32,6 +32,20 @@ describe('AppLayout', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
+  })
+
+  it('renders the sidebar and the mobile bottom navigation', () => {
+    const wrapper = mountLayout()
+
+    expect(wrapper.find('aside').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'AppBottomNav' }).exists()).toBe(true)
+  })
+
+  it('fits the visible viewport height and uses smaller margins on mobile', () => {
+    const wrapper = mountLayout()
+
+    expect(wrapper.classes()).toContain('h-dvh')
+    expect(wrapper.get('main').classes()).toEqual(expect.arrayContaining(['px-4', 'py-6', 'md:px-10', 'md:py-8']))
   })
 
   it('starts with the sidebar expanded and toggles it', async () => {
