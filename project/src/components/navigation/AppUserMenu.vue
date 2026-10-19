@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { NAV_ITEMS } from '@/components/navigation/navItems'
 import { useAuthStore } from '@/stores/auth'
 import { roleLabel as labelForRole } from '@/utils/roleLabels'
 import { initialsFromName } from '@/utils/text'
@@ -18,7 +19,9 @@ watch(profilePicture, () => { pictureFailed.value = false })
 const initials = computed(() => initialsFromName(displayName.value))
 const roleLabel = computed(() => labelForRole(auth.type))
 
-function goToProfile() {
+const mobileLinks = computed(() => [NAV_ITEMS.create, ...(auth.type === 'Admin' ? [NAV_ITEMS.admin] : [])])
+
+function closeMenu() {
   open.value = false
 }
 
@@ -66,8 +69,15 @@ async function handleLogout() {
       <RouterLink
         to="/app/profile"
         class="mt-1 flex items-center gap-2 rounded-lg px-3 py-2 font-display text-sm text-texto hover:bg-black/5"
-        @click="goToProfile"
+        @click="closeMenu"
       >Mi perfil</RouterLink>
+      <RouterLink
+        v-for="link in mobileLinks"
+        :key="link.to"
+        :to="link.to"
+        class="flex items-center gap-2 rounded-lg px-3 py-2 font-display text-sm text-texto hover:bg-black/5 md:hidden"
+        @click="closeMenu"
+      >{{ link.label }}</RouterLink>
       <span
         class="flex cursor-not-allowed items-center gap-2 rounded-lg px-3 py-2 font-display text-sm text-texto/40"
         title="Próximamente"

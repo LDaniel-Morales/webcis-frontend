@@ -21,4 +21,12 @@ describe('AppTopbar', () => {
   it('has no hamburger menu', () => {
     expect(mountTopbar().find('button[aria-label="Abrir menú"]').exists()).toBe(false)
   })
+
+  it('has no notification bell', () => {
+    expect(mountTopbar().find('[title="Notificaciones"]').exists()).toBe(false)
+  })
+
+  it('keeps the logo from shrinking on narrow screens', () => {
+    expect(mountTopbar().get('a[aria-label="Ir al inicio"]').classes()).toContain('flex-none')
+  })
 })
